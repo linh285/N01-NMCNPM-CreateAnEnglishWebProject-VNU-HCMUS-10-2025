@@ -5,6 +5,13 @@ const path = require('path');
 
 const route = require('./routes');
 
+// Lấy hàm connect để test mạng
+const { connect } = require('./src/config/db/connect');
+// Lấy models để tạo bảng
+const models = require('./src/models');
+
+const solvingError = require('./app/middlewares/solvingError');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -20,16 +27,26 @@ app.use(morgan('dev'));
 // 3. Cấu hình Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 4. tạo kết nối db
-const db = require('./src/config/connect');
-db.connect();
+// Giúp Server đọc được dữ liệu JSON từ client gửi lên (POST/PUT)
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
 
-// 7. tạo patched
+// 4. tạo kết nối db
+connect();
+
+// Đồng bộ tạo bảng (Chạy 1 lần đầu thì để force: true, sau đó sửa thành false)
+models.sequelize.sync({ force: false, alter: true })
+    .then(() => {
+        console.log('✅ Đã đồng bộ Database thành công!');
+    })
+    .catch(err => {
+        console.error('❌ Lỗi tạo bảng:', err);
+    });
+
 // routes init
 route(app);
 
 // 8. xử lí lỗi
-const solvingError = require('./app/middlewares/solvingError');
 solvingError(app);
 
 // start server

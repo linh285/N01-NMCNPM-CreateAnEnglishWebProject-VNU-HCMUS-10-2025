@@ -1,23 +1,11 @@
-
 const Sequelize = require('sequelize');
-// Lấy môi trường hiện tại (development, test, hay production)
-const env = process.env.NODE_ENV || 'development';
-// Đọc file config.json để lấy user, password, tên DB
-const config = require(__dirname + '/../config/config.json')[env]; 
+// Import từ file connect ---
+const { sequelize } = require('../config/db/connect'); 
+// -----------------------------------------------
 
+const db = {};
 
-let sequelize;
-// Khởi tạo kết nối đến PostgreSQL
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
-
-
-db.connect = {};
-
-
+// 2. Nạp Models 
 db.Admin = require('./Admin')(sequelize, Sequelize.DataTypes);
 db.Account = require('./Account')(sequelize, Sequelize.DataTypes);
 db.Learner = require('./Learner')(sequelize, Sequelize.DataTypes);
@@ -38,14 +26,14 @@ db.Order = require('./Order')(sequelize, Sequelize.DataTypes);
 db.OrderItem = require('./OrderItem')(sequelize, Sequelize.DataTypes);
 db.Review = require('./Review')(sequelize, Sequelize.DataTypes);
 
-// 5. kích hoạt associate
+// 3. Kích hoạt Associate
 Object.keys(db).forEach((modelName) => {
     if (db[modelName].associate) {
         db[modelName].associate(db);
     }
 });
 
-// 6. xuất ra để dùng
+// 4. Xuất ra
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 

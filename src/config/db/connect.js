@@ -1,15 +1,23 @@
-// Đường dẫn: src/config/connect.js
+const Sequelize = require('sequelize');
 
-const db = require('../models'); 
+// 1. Tạo kết nối (Hardcode user/pass ở đây)
+const sequelize = new Sequelize('tienganh_db', 'postgres', '123456', {
+    host: '127.0.0.1',
+    dialect: 'postgres',
+    logging: false // Tắt log cho đỡ rối mắt
+});
 
-async function connect() {
+// 2. Hàm test kết nối (để main.js gọi cho vui)
+const connect = async () => {
     try {
-        // Hàm authenticate() là hàm chuẩn để test kết nối
-        await db.sequelize.authenticate();
-        console.log('✅ Connection has been established successfully.');
+        await sequelize.authenticate();
+        console.log('✅ Kết nối PostgreSQL thành công!');
     } catch (error) {
-        console.error('❌ Unable to connect to the database:', error);
+        console.error('❌ Kết nối thất bại:', error);
     }
-}
+};
 
-module.exports = { connect };
+// 3. Xuất cả 2 ra ngoài:
+// - sequelize: để bên Models dùng
+// - connect: để bên Main dùng
+module.exports = { sequelize, connect };
