@@ -37,10 +37,10 @@ connect();
 // Đồng bộ tạo bảng (Chạy 1 lần đầu thì để force: true, sau đó sửa thành false)
 models.sequelize.sync({ force: false, alter: true })
     .then(() => {
-        console.log('✅ Đã đồng bộ Database thành công!');
+        console.log('Đã đồng bộ Database thành công!');
     })
     .catch(err => {
-        console.error('❌ Lỗi tạo bảng:', err);
+        console.error('Lỗi tạo bảng:', err);
     });
 
 // routes init
