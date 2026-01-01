@@ -1,3 +1,8 @@
+/*
+   (Authentication - Xác thực): 
+   Tạo và xác minh JWT Token, 
+   đăng nhập mới được vô
+*/
 
 const jwt = require('jsonwebtoken');
 const HttpError = require('http-errors');

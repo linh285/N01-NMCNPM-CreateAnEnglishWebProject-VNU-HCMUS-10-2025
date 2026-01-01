@@ -1,3 +1,11 @@
+/*
+   (Authorization - Phân quyền): 
+
+    chỉ cho phép những vai trò (role) nhất định truy cập
+    kiểu admin/teacher 
+    cấm LEANER
+*/
+
 
 const jwt = require('jsonwebtoken');
 const HttpError = require('http-errors');

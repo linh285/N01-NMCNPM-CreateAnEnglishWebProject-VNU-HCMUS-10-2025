@@ -8,9 +8,7 @@ exports.login = async (req, res, next) => {
         // Bước 1: Tìm user theo email
         const user = await Account.findOne(
             { 
-                where: { 
-                    email
-                } 
+                where: { email} 
             }
         );
         // Bước 2: Kiểm tra email + password
@@ -42,9 +40,7 @@ exports.register = async (req, res, next) => {
         // Bước 1: Kiểm tra email đã tồn tại chưa
         const existingUser = await Account.findOne(
             { 
-                where: { 
-                    email 
-                } 
+                where: { email } 
             }
         );
         if (existingUser) {
