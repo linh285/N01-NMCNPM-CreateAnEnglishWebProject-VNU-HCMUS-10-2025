@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const HttpError = require('http-errors');
 
 const signAuth = function(user) {
-    return jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '3d' });
 }
 const isAuth = (req, res, next) => {
     try {
