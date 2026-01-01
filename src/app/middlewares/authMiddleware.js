@@ -17,6 +17,18 @@ const isAuth = (req, res, next) => {
 
         // Cắt bỏ chữ "Bearer " để lấy đúng đoạn mã token
         // Định dạng chuẩn: "Bearer <token>"
+
+        // phía frontend định dạng như này để lấy
+        // 2. Gửi request kèm Token trong Header
+        //         const res = await fetch(`${API_URL}/me`, {
+        //             method: 'GET',
+        //             headers: {
+        //                 // ĐÂY LÀ CHỖ FRONTEND CHÈN TOKEN VÀO
+        //                 // Chuẩn quốc tế: "Bearer <token>"
+        //                 'Authorization': `Bearer ${token}` 
+        //             }
+        //         });
+        
         const token = tokenStr.split(' ')[1]; 
         
         if (!token) {
