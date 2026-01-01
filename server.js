@@ -1,17 +1,17 @@
+require('dotenv').config();
 const express = require('express');
 
 var morgan = require('morgan');
 const path = require('path');
 
-const route = require('./routes');
+const route = require('./src/routes');
 
 // Lấy hàm connect để test mạng
 const { connect } = require('./src/config/db/connect');
 // Lấy models để tạo bảng
-const models = require('./src/models');
+const models = require('./src/app/models');
 
-const solvingError = require('./app/middlewares/solvingError');
-
+const solvingError = require('./src/app/middlewares/solvingError');
 const app = express();
 const port = process.env.PORT || 3000;
 

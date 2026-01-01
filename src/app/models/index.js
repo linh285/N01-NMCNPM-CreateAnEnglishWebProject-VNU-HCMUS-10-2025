@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 // Import từ file connect ---
-const { sequelize } = require('../config/db/connect'); 
+const { sequelize } = require('../../config/db/connect'); 
 // -----------------------------------------------
 
 const db = {};

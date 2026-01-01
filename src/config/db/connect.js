@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
 // 1. Tạo kết nối (Hardcode user/pass ở đây)
-const sequelize = new Sequelize('tienganh_db', 'postgres', '123456', {
+const sequelize = new Sequelize('EnglishWeb', 'postgres', '016926', {
     host: '127.0.0.1',
     dialect: 'postgres',
     logging: false // Tắt log cho đỡ rối mắt
@@ -11,9 +11,9 @@ const sequelize = new Sequelize('tienganh_db', 'postgres', '123456', {
 const connect = async () => {
     try {
         await sequelize.authenticate();
-        console.log('✅ Kết nối PostgreSQL thành công!');
+        console.log('Kết nối PostgreSQL thành công!');
     } catch (error) {
-        console.error('❌ Kết nối thất bại:', error);
+        console.error('Kết nối thất bại:', error);
     }
 };
 
