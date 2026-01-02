@@ -5,27 +5,28 @@
     kiểu admin/teacher 
     cấm LEANER
 */
-
-
-const jwt = require('jsonwebtoken');
 const HttpError = require('http-errors');
 
-module.exports = function restrictTo(...allowedRoles) {
+const restrictTo = (...allowedRoles) => {
+    // Ví dụ: nếu gọi restrictTo('ADMIN', 'TEACHER') thì allowedRoles = ['ADMIN', 'TEACHER']
     return (req, res, next) => {
-        try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                throw HttpError(401, 'Authorization header missing or malformed');
-            }
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);  
-            if (!allowedRoles.includes(decoded.role)) {
-                throw HttpError(403, 'You do not have permission to perform this action');
-            }
-            req.user = decoded;
+        // 1. Kiểm tra an toàn: Đảm bảo isAuth đã chạy trước đó
+        if (!req.user || !req.user.role) {
+            return next(HttpError(500, 'Internal Server Error: Authorization check failed.'));
+        }
+
+        const userRole = req.user.role;
+
+        // 2.  Array.includes() trả về true nếu tìm thấy, false nếu không
+        if (allowedRoles.includes(userRole)) {
+            // Đủ quyền -> Cho đi tiếp
             next();
-        } catch (error) {
-            next(error);
+        } else {
+            // Không đủ quyền -> Chặn lại bằng lỗi 403
+            // 403 Forbidden: Server hiểu mình là ai, nhưng từ chối phục vụ.
+            return next(HttpError(403, 'Forbidden: You do not have permission to perform this action.'));
         }
     };
-}
+};
+
+module.exports = restrictTo;

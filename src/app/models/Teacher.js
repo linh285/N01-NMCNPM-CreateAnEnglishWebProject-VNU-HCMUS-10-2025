@@ -3,10 +3,10 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Teacher extends Model {
         static associate(models) {
-            // 1. QUAN HỆ TÀI KHOẢN (1-n)
-            Teacher.hasMany(models.Account, {
-                foreignKey: 'TEACHER_idTEACHER',
-                as: 'accounts'
+            // 1. QUAN HỆ TÀI KHOẢN (1-1)
+            Teacher.belongsTo(models.Account, {
+                foreignKey: 'idACCOUNT',
+                as: 'account'
             });
 
             // 2. QUAN HỆ KHÓA HỌC (1-N)
@@ -23,6 +23,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
+        },
+        // FK
+        idACCOUNT: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            unique: true,
+            references: { model: 'ACCOUNTS', key: 'idACCOUNT' }
         },
         fullName: {
             type: DataTypes.STRING(100),
