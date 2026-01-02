@@ -1,0 +1,287 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ShoppingCart, FileText, Bell, ChevronLeft, ChevronRight, Leaf, BookOpen, PlayCircle, User, MessageSquare, Phone, MapPin, Mail, Facebook, Linkedin, Youtube, Menu, Moon, Sun, LogOut } from 'lucide-react';
+import logo from '../../assets/logo.png';
+import Sidebar from '../../components/common/Sidebar';
+import { APP_INFO } from '../../shared';
+import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
+
+const LandingPage = () => {
+    const navigate = useNavigate();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Use global theme state
+    const { isDarkMode, toggleTheme } = useTheme();
+    // Use auth state
+    const { user, isAuthenticated, logout } = useAuth();
+    const [showUserMenu, setShowUserMenu] = useState(false);
+
+    const featureItems = [
+        { icon: Leaf, label: "Tài liệu\nmiễn phí" },
+        { icon: BookOpen, label: "Tài liệu\nTrả phí" },
+        { icon: PlayCircle, label: "Khóa học\nOnline" },
+        { icon: User, label: "Quản lý\ntài khoản" },
+        { icon: MessageSquare, label: "Tư vấn\nmiễn phí" },
+    ];
+
+    return (
+        <div className={`min-h-screen transition-all duration-500 font-sans ${isDarkMode
+            ? 'bg-[#0B1120] text-gray-100 dark' // Simplified soft dark background (Slate 950)
+            : 'bg-gray-50 text-gray-800'
+            }`}>
+
+            {/* Background Orbs for Glass Effect (Only in Dark Mode) */}
+            {isDarkMode && (
+                <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                    <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-900/20 rounded-full blur-[128px]"></div>
+                    <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-900/20 rounded-full blur-[128px]"></div>
+                    {/* Tiny stars/noise texture */}
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
+                </div>
+            )}
+
+            <div className="flex relative z-10">
+                <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+                <div className="flex-1 md:ml-64 transition-all duration-300 flex flex-col min-h-screen">
+
+                    {/* Header - Glass Effect */}
+                    <header className={`sticky top-0 z-30 flex justify-between md:justify-end items-center px-6 md:px-10 py-4 md:py-5 gap-6 border-b transition-all duration-500 ${isDarkMode
+                        ? 'bg-black/20 backdrop-blur-xl border-white/5 shadow-2xl shadow-black/5'
+                        : 'bg-white/80 backdrop-blur-md border-gray-100'
+                        }`}>
+                        <button
+                            className={`md:hidden hover:text-primary ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                            onClick={() => setIsSidebarOpen(true)}
+                        >
+                            <Menu size={28} />
+                        </button>
+
+                        <div className="flex items-center gap-4 md:gap-6">
+                            {/* Dark Mode Toggle */}
+                            <button
+                                onClick={toggleTheme}
+                                className={`p-2 rounded-full transition-all duration-300 ${isDarkMode
+                                    ? 'bg-white/10 text-yellow-400 hover:bg-white/20 ring-1 ring-white/10'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                            >
+                                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                            </button>
+
+                            <div className="flex items-center gap-2 md:gap-4">
+                                <button className={`p-2 transition-colors ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-primary'}`}>
+                                    <ShoppingCart size={24} strokeWidth={1.5} />
+                                </button>
+                                <button className={`p-2 transition-colors hidden sm:block ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-primary'}`}>
+                                    <FileText size={24} strokeWidth={1.5} />
+                                </button>
+                                <button className={`p-2 transition-colors ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-primary'}`}>
+                                    <Bell size={24} strokeWidth={1.5} />
+                                </button>
+                            </div>
+
+                            {isAuthenticated && user ? (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowUserMenu(!showUserMenu)}
+                                        className="flex items-center gap-3 p-1 pr-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+                                    >
+                                        <img
+                                            src={user.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
+                                            alt="User Avatar"
+                                            className="w-9 h-9 rounded-full bg-indigo-100"
+                                        />
+                                        <span className={`text-sm font-bold hidden sm:block ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                                            {user.name}
+                                        </span>
+                                    </button>
+
+                                    {/* Dropdown Menu */}
+                                    {showUserMenu && (
+                                        <div className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-2xl p-2 border transition-all ${isDarkMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-100'
+                                            }`}>
+                                            <div className="px-4 py-2 border-b border-gray-100/10 mb-2">
+                                                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Signed in as</p>
+                                                <p className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user.email}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    logout();
+                                                    setShowUserMenu(false);
+                                                }}
+                                                className={`w-full flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${isDarkMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'
+                                                    }`}
+                                            >
+                                                <LogOut size={16} />
+                                                Sign Out
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => navigate('/login')}
+                                    className="bg-accent hover:bg-accent-hover text-white px-6 md:px-8 py-2 md:py-2.5 rounded-full font-bold shadow-lg shadow-accent/30 transition-all text-sm whitespace-nowrap active:scale-95"
+                                >
+                                    Đăng nhập
+                                </button>
+                            )}
+                        </div>
+                    </header>
+
+                    <main className="flex-1">
+                        <div className="px-6 md:px-10 pb-20">
+                            {/* Banner */}
+                            <div className="mt-6 md:mt-8 relative w-full h-[300px] md:h-[480px] rounded-[24px] md:rounded-[32px] overflow-hidden group shadow-2xl ring-1 ring-white/10">
+                                <img
+                                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop"
+                                    alt="Students Learning"
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
+
+                                {/* Deep Glass Card */}
+                                <div className="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 max-w-xs md:max-w-lg w-full pr-4">
+                                    <div className="bg-black/30 backdrop-blur-xl border border-white/20 p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-2xl">
+                                        <h2 className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-4 leading-tight drop-shadow-lg">{APP_INFO.name.first} {APP_INFO.name.last}</h2>
+                                        <p className="text-sm md:text-lg text-gray-100 leading-relaxed font-light drop-shadow">
+                                            Interactive lessons, practice exercises, and real-life conversation tips.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <button className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full items-center justify-center text-white border border-white/20 hover:bg-white hover:text-primary transition-all">
+                                    <ChevronLeft size={24} />
+                                </button>
+                                <button className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full items-center justify-center text-white border border-white/20 hover:bg-white hover:text-primary transition-all">
+                                    <ChevronRight size={24} />
+                                </button>
+                            </div>
+
+                            {/* About Us */}
+                            <section className="mt-12 md:mt-20">
+                                <h3 className={`text-2xl md:text-3xl font-bold mb-6 md:mb-8 ml-2 ${isDarkMode ? 'text-white drop-shadow-lg' : 'text-primary'}`}>About us</h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+                                    <div className="space-y-6 md:space-y-8 order-2 md:order-1">
+                                        <p className={`leading-loose text-base md:text-lg text-justify font-light ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            {APP_INFO.name.first} {APP_INFO.name.last} is a promising and rapidly growing educational technology startup in Vietnam.
+                                            It is a comprehensive English learning platform designed to guide learners from basic to advanced levels,
+                                            making English accessible and engaging for everyone. It currently serves more than 13 million users across 101 countries worldwide.
+                                        </p>
+                                        <button className="border-2 border-accent text-accent hover:bg-accent hover:text-white px-8 md:px-10 py-2.5 md:py-3 rounded-full font-bold transition-all text-sm uppercase tracking-wider w-full md:w-auto shadow-lg shadow-accent/20">
+                                            Xem chi tiết
+                                        </button>
+                                    </div>
+                                    <div className="relative group order-1 md:order-2">
+                                        <div className="absolute inset-0 bg-accent/20 rounded-[32px] md:rounded-[40px] rotate-3 transform transition-transform group-hover:rotate-6"></div>
+                                        <img
+                                            src="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?q=80&w=2574&auto=format&fit=crop"
+                                            alt="About Us Team"
+                                            className="relative rounded-[32px] md:rounded-[40px] shadow-xl w-full h-[240px] md:h-[320px] object-cover ring-1 ring-white/10"
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Features */}
+                            <section className="mt-16 md:mt-24 text-center">
+                                <h2 className={`text-2xl md:text-3xl font-bold mb-8 md:mb-12 ${isDarkMode ? 'text-white drop-shadow-lg' : 'text-primary'}`}>{APP_INFO.name.first} {APP_INFO.name.last}</h2>
+                                <div className="flex justify-center flex-wrap gap-8 md:gap-12">
+                                    {featureItems.map((item, index) => (
+                                        <div key={index} className="flex flex-col items-center gap-4 group cursor-pointer w-24 md:w-auto">
+                                            <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center transition-all duration-300 ${isDarkMode
+                                                ? 'bg-white/5 text-gray-300 backdrop-blur-md border border-white/10 group-hover:bg-accent group-hover:text-white group-hover:border-accent'
+                                                : 'bg-gray-100 text-gray-600 group-hover:bg-accent group-hover:text-white'
+                                                }`}>
+                                                <item.icon className="w-7 h-7 md:w-8 md:h-8" strokeWidth={1.5} />
+                                            </div>
+                                            <span className={`text-sm md:text-base whitespace-pre-line leading-tight transition-colors ${isDarkMode ? 'text-gray-400 group-hover:text-accent' : 'text-gray-500 group-hover:text-accent'
+                                                }`}>
+                                                {item.label}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+
+                            {/* Test Level */}
+                            <section className="mt-16 md:mt-24 mb-6 md:mb-12">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+                                    <div className="order-2 md:order-1">
+                                        <h2 className={`text-2xl md:text-3xl font-bold mb-4 md:mb-6 ${isDarkMode ? 'text-white drop-shadow-lg' : 'text-primary'}`}>Làm bài kiểm tra thử</h2>
+                                        <p className={`text-base md:text-lg mb-6 md:mb-8 leading-relaxed font-light ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            {APP_INFO.name.first} {APP_INFO.name.last} helps you check your English level from there to have a good orientation for yourself
+                                        </p>
+                                        <button
+                                            onClick={() => navigate(user?.hasTakenPlacementTest ? '/test/301/take' : '/test/301/take')} // Mock: In real app, /test/result/301
+                                            className="border-2 border-accent text-accent hover:bg-accent hover:text-white px-10 md:px-12 py-2.5 md:py-3 rounded-full font-bold transition-all w-full md:w-auto shadow-lg shadow-accent/20"
+                                        >
+                                            {user?.hasTakenPlacementTest ? 'Xem kết quả đánh giá' : 'Làm bài ngay'}
+                                        </button>
+                                    </div>
+                                    <div className="rounded-[32px] md:rounded-[40px] overflow-hidden shadow-xl order-1 md:order-2 ring-1 ring-white/10">
+                                        <img
+                                            src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2670&auto=format&fit=crop"
+                                            alt="Students High Five"
+                                            className="w-full h-[240px] md:h-[300px] object-cover hover:scale-105 transition-transform duration-500"
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        {/* Footer */}
+                        <footer className={`pt-12 md:pt-16 pb-8 px-6 md:px-10 border-t transition-all duration-500 ${isDarkMode
+                            ? 'bg-black/40 backdrop-blur-xl border-white/5'
+                            : 'bg-gray-100 border-gray-200'
+                            }`}>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-8 md:mb-12">
+                                <div className="col-span-1">
+                                    <div className={`p-4 w-fit flex items-center gap-3 rounded-lg ${isDarkMode ? 'bg-white/5 backdrop-blur-sm border border-white/10 text-white' : 'bg-primary text-white'}`}>
+                                        <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
+                                        <div>
+                                            <h1 className="font-bold text-lg md:text-xl leading-none">{APP_INFO.name.first}</h1>
+                                            <h2 className="font-bold text-lg md:text-xl leading-none">{APP_INFO.name.last}</h2>
+                                        </div>
+                                    </div>
+                                    <p className={`mt-6 text-sm leading-relaxed max-w-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        Interactive lessons, practice exercises, and real-life conversation tips.
+                                    </p>
+                                </div>
+
+                                <div className="hidden md:block col-span-1"></div>
+
+                                <div className="col-span-1 space-y-4">
+                                    <div className={`flex items-center gap-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        <Phone size={20} className="text-gray-500" />
+                                        <span className="font-medium">{APP_INFO.contact.phone}</span>
+                                    </div>
+                                    <div className={`flex items-center gap-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        <MapPin size={20} className="text-gray-500" />
+                                        <span className="font-medium">{APP_INFO.contact.address}</span>
+                                    </div>
+                                    <div className={`flex items-center gap-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        <Mail size={20} className="text-gray-500" />
+                                        <span className="font-medium">{APP_INFO.contact.email}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className={`flex justify-center md:justify-end gap-4 mt-8 pt-8 border-t ${isDarkMode ? 'border-white/5' : 'border-gray-200'}`}>
+                                <button className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"><Facebook size={18} /></button>
+                                <button className="bg-blue-700 text-white p-2 rounded-md hover:bg-blue-800"><Linkedin size={18} /></button>
+                                <button className={`p-2 rounded-md border hover:bg-gray-50 ${isDarkMode ? 'bg-white/5 text-red-500 border-white/10 hover:bg-white/10' : 'bg-white text-red-500 border-gray-200'}`}><Mail size={18} /></button>
+                                <button className="bg-red-600 text-white p-2 rounded-md hover:bg-red-700"><Youtube size={18} /></button>
+                            </div>
+                        </footer>
+                    </main>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default LandingPage;
