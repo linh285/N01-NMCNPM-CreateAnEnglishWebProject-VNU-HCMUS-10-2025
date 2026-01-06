@@ -97,20 +97,28 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+        
         const user = await Account.findOne({ where: { email } });
 
-        if (!user.isActive) {
-        throw HttpError(403, 'Your account has been locked by Admin.');
-    }
+        if (!user) {
+            throw HttpError(401, 'Invalid email or password');
+        }
+
         //  SO SÁNH MẬT KHẨU 
         // user.password trong DB là dạng hash ($2a$10$...)
         // password người dùng nhập là dạng thô (123456)
         // Dùng bcrypt.compare để so sánh
-        if (!user) throw HttpError(401, 'Invalid email or password');
+        if (user.status !== 'active') { 
+            throw HttpError(403, 'Your account has been locked or is pending approval.');
+        }
 
+        // 4. Kiểm tra mật khẩu
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) throw HttpError(401, 'Invalid email or password');
+        if (!isMatch) {
+            throw HttpError(401, 'Invalid email or password');
+        }
 
+        // 5. Tạo token và trả về
         const token = signAuth(user);
         res.status(200).json({ 
             message: 'Login successful', 
