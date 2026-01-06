@@ -15,7 +15,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'learning-app-assets', // Folder trên cloud
     resource_type: 'auto', // Tự động nhận diện (Image/Video/Audio)
-    allowed_formats: ['jpg', 'png', 'jpeg', 'mp4', 'avi', 'mp3', 'wav', 'webm', 'pdf', 'docx', 'pptx'], // Định dạng file được phép upload
+    allowed_formats: ['jpg', 'png', 'jpeg', 'mp4', 'avi', 'mp3', 'mp4', 'wav', 'webm', 'pdf', 'docx', 'pptx'], // Định dạng file được phép upload
   },
 });
 

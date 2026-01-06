@@ -6,7 +6,7 @@ exports.createLesson = async (req, res, next) => {
     try {
         const { id: accountId, role } = req.user; 
         const { courseId } = req.params;
-        const { title, orderIndex, contentType, durationMinutes, learningType, videoUrl, content, isPreview } = req.body;
+            const { title, orderIndex, contentType, durationMinutes, learningType, videoUrl, content, isPreview, TRANSCRIPT, totalQuestions } = req.body;
 
         const videoUrlFinal = req.file ? req.file.path : videoUrl;
 
@@ -41,9 +41,11 @@ exports.createLesson = async (req, res, next) => {
             contentType,
             durationMinutes: durationMinutes || 0,
             learningType,
-            videoUrl: videoUrlFinal,
-            content,
+            mediaUrl: videoUrlFinal,  
+            textContent: content,
             isPreview: isPreview || false,
+            TRANSCRIPT: TRANSCRIPT || null,
+            totalQuestions: totalQuestions || 0
         });
 
         res.status(201).json({
@@ -93,7 +95,9 @@ exports.updateLesson = async (req, res, next) => {
             learningType: updates.learningType, 
             videoUrl: updates.videoUrl,
             content: updates.content,
-            isPreview: updates.isPreview
+            isPreview: updates.isPreview,
+            TRANSCRIPT: updates.TRANSCRIPT,
+            totalQuestions: updates.totalQuestions,
         });
 
         res.status(200).json({
