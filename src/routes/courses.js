@@ -5,7 +5,7 @@ const { isAuth } = require('../app/middlewares/authMiddleware');
 const restrictTo = require('../app/middlewares/restrictTo');
 
 const courseController = require('../app/controllers/courseController');
-const upload = require('../middlewares/uploadMiddleware');
+const upload = require('../app/middlewares/uploadMiddleware');
 
 // theo csdl thi chi TEACHER moi tao course
 router.post('/', isAuth, restrictTo('TEACHER'), upload.single('thumbnail'), courseController.createCourse);

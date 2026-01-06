@@ -5,7 +5,7 @@ const { isAuth } = require('../app/middlewares/authMiddleware');
 const restrictTo = require('../app/middlewares/restrictTo');
 
 const questionController = require('../app/controllers/questionController');
-const upload = require('../middlewares/uploadMiddleware');
+const upload = require('../app/middlewares/uploadMiddleware');
 
 
 router.get('/lesson/:lessonId', isAuth, questionController.getQuestionsByLesson);
