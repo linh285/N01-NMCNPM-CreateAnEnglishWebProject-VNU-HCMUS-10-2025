@@ -14,6 +14,7 @@ exports.createCourse = async (req, res, next) => {
         const accountId = req.user.id; 
         const { title, description, price, level, type, category, syllabus } = req.body;
 
+        const thumbnailUrl = req.file ? req.file.path : null;
 
         if (!title) {
             throw HttpError(400, 'Missing required fields: title');
@@ -39,7 +40,8 @@ exports.createCourse = async (req, res, next) => {
             courseCode: newCourseCode, // tu dong dien
             category,
             syllabus,
-            idTEACHER: teacher.idTEACHER 
+            idTEACHER: teacher.idTEACHER ,
+            thumbnailUrl: thumbnailUrl,
         });
 
         res.status(201).json(
@@ -145,6 +147,14 @@ exports.updateCourse = async (req, res, next) => {
             if (!teacher || course.idTEACHER !== teacher.idTEACHER) {
                 throw HttpError(403, 'You do not have permission to update this course');
             }
+        }
+
+        // xử lí ảnh update
+        if (req.file) {
+            updates.thumbnailUrl = req.file.path;
+        } else {
+            // Nếu không có file, xóa trường này khỏi updates để tránh ghi đè null/undefined vào DB
+            delete updates.thumbnailUrl;
         }
 
         // Chỉ cho phép update các trường an toàn (tránh bị hack đổi idTEACHER)

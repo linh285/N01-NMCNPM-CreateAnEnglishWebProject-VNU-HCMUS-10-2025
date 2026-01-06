@@ -8,6 +8,8 @@ exports.createLesson = async (req, res, next) => {
         const { courseId } = req.params;
         const { title, orderIndex, contentType, durationMinutes, learningType, videoUrl, content, isPreview } = req.body;
 
+        const videoUrlFinal = req.file ? req.file.path : videoUrl;
+
         if (!title || !contentType || !durationMinutes || !learningType) throw HttpError(400, 'Missing required fields');
 
         const course = await Course.findByPk(courseId);
@@ -39,7 +41,7 @@ exports.createLesson = async (req, res, next) => {
             contentType,
             durationMinutes: durationMinutes || 0,
             learningType,
-            videoUrl,
+            videoUrl: videoUrlFinal,
             content,
             isPreview: isPreview || false,
         });
@@ -60,6 +62,12 @@ exports.updateLesson = async (req, res, next) => {
         const updates = req.body;
         const { id: accountId, role } = req.user;
 
+        const videoUrlFinal = req.file ? req.file.path : updates.videoUrl;
+
+        if (videoUrlFinal) {
+            updates.videoUrl = videoUrlFinal;
+        }
+
         const lesson = await Lesson.findByPk(id, {
             include: [{
                 model: Course,
@@ -73,7 +81,7 @@ exports.updateLesson = async (req, res, next) => {
             const teacher = await Teacher.findOne({ where: { idACCOUNT: accountId } });
             if (!teacher) throw HttpError(404, 'Teacher not found');
             
-            if (lesson.course.idTEACHER !== teacher.idTEACHER) {
+            if (!lesson.course || lesson.course.idTEACHER !== teacher.idTEACHER) {
                 throw HttpError(403, 'You are not the owner of this course');
             }
         }
@@ -81,7 +89,8 @@ exports.updateLesson = async (req, res, next) => {
         await lesson.update({
             title: updates.title,
             durationMinutes: updates.durationMinutes,
-            type: updates.type,
+            contentType: updates.contentType || updates.type, 
+            learningType: updates.learningType, 
             videoUrl: updates.videoUrl,
             content: updates.content,
             isPreview: updates.isPreview

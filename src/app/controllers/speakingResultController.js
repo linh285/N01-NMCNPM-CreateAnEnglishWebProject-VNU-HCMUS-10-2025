@@ -5,9 +5,15 @@ const HttpError = require('http-errors');
 exports.submitSpeakingResult = async (req, res, next) => {
     try {
         const { id: accountId } = req.user;
-        const { lessonId, aiScore, aiFeedback, userAudioUrl } = req.body;
+        const { lessonId, aiScore, aiFeedback} = req.body;
 
-        if (!lessonId || !userAudioUrl) {
+        if (!req.file) {
+            throw HttpError(400, 'Audio recording is required');
+        }
+
+        const audioUrl = req.file.path; // Lưu đường dẫn file đã upload
+
+        if (!lessonId || !audioUrl) {
             throw HttpError(400, 'Lesson ID and Audio URL are required');
         }
 
@@ -32,9 +38,9 @@ exports.submitSpeakingResult = async (req, res, next) => {
         const newResult = await SpeakingResult.create({
             idLEARNER: learner.idLEARNER,
             idLESSON: lessonId,
-            aiScore: aiScore || 0,        // (0-100 or 0-10)
+            aiScore: aiScore ? parseFloat(aiScore) : 0, // (0-100 )
             aiFeedback: aiFeedback || '', 
-            userAudioUrl: userAudioUrl   
+            userAudioUrl: audioUrl   
         });
 
         res.status(201).json({
@@ -64,9 +70,13 @@ exports.getMySpeakingHistory = async (req, res, next) => {
         });
 
         // Tính điểm trung bình 
-        const bestScore = results.reduce((max, r) => (r.aiScore > max ? r.aiScore : max), 0);
+        const bestScore = results.reduce((max, r) => {
+            const score = parseFloat(r.aiScore) || 0;
+            return score > max ? score : max;
+        }, 0);
 
         res.status(200).json({
+            message: 'Speaking history retrieved successfully',
             count: results.length,
             bestScore: bestScore,
             data: results
