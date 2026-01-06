@@ -10,7 +10,10 @@ const courseController = require('../app/controllers/courseController');
 router.post('/', isAuth, restrictTo('TEACHER'), courseController.createCourse);
 router.get('/', courseController.getAllCourses);
 router.get('/:id', courseController.getCourseById);
-router.put('/:id', isAuth, restrictTo('TEACHER'), courseController.updateCourse);
-router.delete('/:id', isAuth, restrictTo('TEACHER'), courseController.deleteCourse);
+router.put('/:id', isAuth, restrictTo('TEACHER', 'ADMIN'), courseController.updateCourse);
+router.delete('/:id', isAuth, restrictTo('TEACHER', 'ADMIN'), courseController.deleteCourse);
+
+// admin duyet course
+router.put('/:idCOURSE/approve', isAuth, restrictTo('ADMIN'), courseController.approveCourse);
 
 module.exports = router;

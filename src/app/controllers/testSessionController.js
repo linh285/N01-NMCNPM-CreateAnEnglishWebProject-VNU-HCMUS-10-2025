@@ -1,7 +1,7 @@
 const { TestSession, Question, Learner, Lesson, Enrollment } = require('../models');
 const HttpError = require('http-errors');
 
-// 1. [POST] /test-sessions/submit (Nộp bài, Chấm điểm và Lưu kết quả)
+// 1. [POST] /test-sessions/submit 
 exports.submitTest = async (req, res, next) => {
     try {
         const { id: accountId } = req.user;
@@ -16,7 +16,7 @@ exports.submitTest = async (req, res, next) => {
         const learner = await Learner.findOne({ where: { idACCOUNT: accountId } });
         if (!learner) throw HttpError(404, 'Learner not found');
 
-        // 2. Check Enrollment (Phải mua khóa học mới được thi)
+        // 2. mua moi dc lam bai test
         const lesson = await Lesson.findByPk(lessonId);
         if (!lesson) throw HttpError(404, 'Lesson not found');
 
@@ -25,27 +25,25 @@ exports.submitTest = async (req, res, next) => {
         });
         if (!isEnrolled) throw HttpError(403, 'You must enroll in the course to take this test');
 
-        // 3. Lấy danh sách câu hỏi và đáp án đúng
         const questions = await Question.findAll({
             where: { idLESSON: lessonId }
         });
 
         if (questions.length === 0) throw HttpError(404, 'No questions found for this lesson');
 
-        // 4. thuật toán cham điem
+        // 3. thuật toán cham điem
         let correctCount = 0;
         const totalQuestions = questions.length;
-        const analysisDetails = []; // Mảng này sẽ lưu vào cột resultAnalysisJson
+        const analysisDetails = []; 
 
         questions.forEach(q => {
-            // Đáp án user chọn
+            // dap an user chon
             const userAnswer = userAnswers[q.idQUESTION]; 
-             // So sánh với đáp án đúng
+            // so voi dap an dung
             const isCorrect = userAnswer === q.correctAnswer;
 
             if (isCorrect) correctCount++;
 
-            // Tạo log chi tiết cho từng câu
             analysisDetails.push({
                 questionId: q.idQUESTION,
                 questionText: q.questionText,
@@ -58,13 +56,13 @@ exports.submitTest = async (req, res, next) => {
         // Tính điểm (Thang 100 )
         const score = Math.round((correctCount / totalQuestions) * 100);
 
-        // 5. Lưu vào TestSession
+        // 4. Lưu vào TestSession
         const newSession = await TestSession.create({
             LEARNER_idLEARNER: learner.idLEARNER, 
             LESSON_idLESSON: lessonId,          
             testPurpose: testPurpose || 'Practice',
             score: score,
-            resultAnalysisJson: analysisDetails, // mảng JSON
+            resultAnalysisJson: analysisDetails,
             receiveResultEmail: receiveResultEmail || null,
             submittedAt: new Date()
         });
@@ -82,7 +80,7 @@ exports.submitTest = async (req, res, next) => {
     }
 };
 
-// 2. [GET] /test-sessions/lesson/:lessonId (Xem lịch sử thi của bài học này)
+// 2. [GET] /test-sessions/lesson/:lessonId 
 exports.getHistoryByLesson = async (req, res, next) => {
     try {
         const { id: accountId } = req.user;
@@ -109,7 +107,7 @@ exports.getHistoryByLesson = async (req, res, next) => {
     }
 };
 
-// 3. [GET] /testSessions/:idTEST_SESSION (Xem chi tiết 1 bài thi cụ thể - xem lại lỗi sai)
+// 3. [GET] /testSessions/:idTEST_SESSION 
 exports.getSessionDetail = async (req, res, next) => {
     try {
         const { id } = req.params; 

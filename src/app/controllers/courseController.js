@@ -7,10 +7,10 @@ const generateCourseCode = () => {
     const randomNum = Math.floor(10000 + Math.random() * 90000); 
     return `${prefix}-${randomNum}`;
 };
-// 1. [POST] /courses - Tạo khóa học mới
+// 1. [POST] /courses 
 exports.createCourse = async (req, res, next) => {
     try {
-        // 1. Lấy thông tin từ Token (Đã qua middleware bảo vệ)
+        // 1. Lấy thông tin từ Token và body
         const accountId = req.user.id; 
         const { title, description, price, level, type, category, syllabus } = req.body;
 
@@ -36,10 +36,9 @@ exports.createCourse = async (req, res, next) => {
             price: price || 0,
             level,
             type: type || 'Online',
-            courseCode: newCourseCode, // Tự động điền
+            courseCode: newCourseCode, // tu dong dien
             category,
             syllabus,
-            // QUAN TRỌNG: Gán đúng idTEACHER
             idTEACHER: teacher.idTEACHER 
         });
 
@@ -56,7 +55,7 @@ exports.createCourse = async (req, res, next) => {
     }
 };
 
-// 2. [GET] /courses - Lấy tất cả khóa học
+// 2. [GET] /courses 
 exports.getAllCourses = async (req, res, next) => {
     try {
         const courses = await Course.findAll(
@@ -64,7 +63,7 @@ exports.getAllCourses = async (req, res, next) => {
             include: [ 
                     {
                         model: Teacher,
-                        as: 'teacher', // Phải khớp với 'as' trong models/index.js
+                        as: 'teacher', 
                         attributes: ['fullName', 'avatarUrl', 'bio'],
 
                         // Lấy tiếp thông tin Account từ Teacher (Nested Include)
@@ -75,7 +74,7 @@ exports.getAllCourses = async (req, res, next) => {
                         }],
                     }
                 ], 
-                order: [['createdAt', 'DESC']] // Sắp xếp khóa học mới nhất lên đầu
+                order: [['createdAt', 'DESC']] 
             }
         );
 
@@ -126,7 +125,7 @@ exports.getCourseById = async (req, res, next) => {
     }
 };
 
-// 4. [PUT] /courses/:id - Cập nhật thông tin khóa học
+// 4. [PUT] /courses/:id 
 exports.updateCourse = async (req, res, next) => {
     try {
         const accountId = req.user.id;
@@ -140,7 +139,8 @@ exports.updateCourse = async (req, res, next) => {
             throw HttpError(404, 'Course not found');
         }
 
-        if( userRole === 'TEACHER' ) {
+        if (userRole !== 'ADMIN') {
+            // cho phép Teacher cập nhật khóa học của c họ
             const teacher = await Teacher.findOne({ where: { idACCOUNT: accountId } });
             if (!teacher || course.idTEACHER !== teacher.idTEACHER) {
                 throw HttpError(403, 'You do not have permission to update this course');
@@ -157,10 +157,12 @@ exports.updateCourse = async (req, res, next) => {
             category: updates.category,
             syllabus: updates.syllabus,
             thumbnailUrl: updates.thumbnailUrl,
-            status: updates.status
         };
+        if (userRole === 'TEACHER') {
+            allowedUpdates.status = 'DRAFT'; 
+        }
 
-        // Loại bỏ các trường undefined
+        // bỏ các trường undefined
         Object.keys(allowedUpdates).forEach(key => allowedUpdates[key] === undefined && delete allowedUpdates[key]);
 
         await course.update(allowedUpdates);
@@ -176,7 +178,7 @@ exports.updateCourse = async (req, res, next) => {
     }
 };
 
-// 5. [DELETE] /courses/:id - Xóa khóa học
+// 5. [DELETE] /courses/:id 
 exports.deleteCourse = async (req, res, next) => {
     try {
         const courseId = req.params.id;
@@ -187,7 +189,8 @@ exports.deleteCourse = async (req, res, next) => {
         if (!course) {
             throw HttpError(404, 'Course not found');
         }
-        if( userRole === 'TEACHER' ) {
+        if (userRole !== 'ADMIN') {
+            // Chỉ cho phép Teacher cập nhật khóa học của họ
             const teacher = await Teacher.findOne({ where: { idACCOUNT: accountId } });
             if (!teacher || course.idTEACHER !== teacher.idTEACHER) {
                 throw HttpError(403, 'You do not have permission to delete this course');
@@ -198,6 +201,27 @@ exports.deleteCourse = async (req, res, next) => {
         res.status(200).json({
             message: 'Course deleted successfully'
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// 6. [PUT] /courses/:idCOURSE/approve - Duyệt khóa học (ADMIN)
+exports.approveCourse = async (req, res, next) => {
+    try {
+        const { idCOURSE } = req.params;
+         // Admin gửi lên 'PUBLISHED', 'ARCHIVED' ban dau la DRAFT
+        const { status } = req.body;
+
+        const course = await Course.findByPk(idCOURSE);
+        if (!course) throw HttpError(404, 'Course not found');
+        if (!['PUBLISHED', 'ARCHIVED'].includes(status)) {
+            throw HttpError(400, 'Invalid status value');
+        }
+    
+        await course.update({ status: status });
+
+        res.status(200).json({ message: `Course is now ${status}` });
     } catch (error) {
         next(error);
     }

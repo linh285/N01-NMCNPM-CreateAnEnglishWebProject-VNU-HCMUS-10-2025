@@ -14,6 +14,7 @@ const questionRouter = require('./questions');
 const offlineScheduleRouter  = require('./offlineSchedule');
 const speakingResultRouter = require('./speakingResults');
 const testSessionRouter = require('./testSessions');
+const adminRouter = require('./admin');
 
 function route(app) {
   app.use('/api/v1/auth', authRouter);
@@ -29,6 +30,7 @@ function route(app) {
   app.use('/api/v1/offlineSchedule', offlineScheduleRouter);
   app.use('/api/v1/speakingResults', speakingResultRouter);
   app.use('/api/v1/testSessions', testSessionRouter);
+  app.use('/api/v1/admin', adminRouter);
 
 }
 

@@ -31,7 +31,7 @@ exports.createOrder = async (req, res, next) => {
             const course = await Course.findByPk(courseId);
             if (!course) throw HttpError(404, `Course ID ${courseId} not found`);
             
-            // Check xem đã mua chưa (tránh mua trùng)
+            // Check xem đã mua chưa 
             const isEnrolled = await Enrollment.findOne({
                 where: { idLEARNER: learner.idLEARNER, idCOURSE: courseId }
             });
@@ -48,7 +48,7 @@ exports.createOrder = async (req, res, next) => {
             subTotal: totalPrice, // Tạm thời subTotal = totalPrice (chưa có discount)
             paymentMethod: paymentMethod, 
             status: 'Pending',
-            discountCode: null // Hoặc lấy từ body nếu có
+            discountCode: null //  =>> Chưa xử lý mã giảm giá
         }, { transaction: t });
 
         // 4. Tạo Order Details
@@ -69,7 +69,7 @@ exports.createOrder = async (req, res, next) => {
         });
 
     } catch (error) {
-        // Nếu có lỗi -> Rollback (Hủy hết các thao tác nãy giờ)
+        // Nếu có lỗi -> Rollback 
         await t.rollback();
         next(error);
     }
@@ -90,14 +90,13 @@ exports.processPayment = async (req, res, next) => {
 
         if (!order) throw HttpError(404, 'Order not found');
 
-        // Check quyền (chỉ chủ đơn hàng mới được thanh toán)
+        // Check quyền 
         if (order.idLEARNER !== learner.idLEARNER) throw HttpError(403, 'Not your order');
 
         if (order.status === 'Paid') throw HttpError(400, 'Order already paid');
 
-        // LOGIC KÍCH HOẠT KHÓA HỌC (AUTO ENROLL) 
+        // kich hoat khoa hoc
         for (const detail of order.items) {
-            // Check lại lần nữa cho chắc
             const existing = await Enrollment.findOne({
                 where: { idLEARNER: learner.idLEARNER, idCOURSE: detail.idCOURSE }
             });
@@ -111,7 +110,6 @@ exports.processPayment = async (req, res, next) => {
             }
         }
 
-        // Cập nhật trạng thái đơn hàng
         await order.update({ status: 'Paid' }, { transaction: t });
 
         await t.commit();

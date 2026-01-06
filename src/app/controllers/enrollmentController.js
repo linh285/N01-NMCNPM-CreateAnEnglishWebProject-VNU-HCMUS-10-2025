@@ -11,7 +11,7 @@ exports.createEnrollment = async (req, res, next) => {
             return next(HttpError(400, 'Course ID is required'));
         }
 
-        // Check if the course exists
+        // kiem tra khoa hoc ton tai
         const course = await Course.findByPk(courseId);
         if (!course) {
             return next(HttpError(404, 'Course not found'));
@@ -24,12 +24,12 @@ exports.createEnrollment = async (req, res, next) => {
             return next(HttpError(404, 'Learner profile not found'));
         }
 
-        // Check if the student is already enrolled
+        // kiem tra neu da dang ky khoa hoc
         const existingEnrollment = await Enrollment.findOne({ where: { idLEARNER: learner.idLEARNER, idCOURSE: courseId } });
         if (existingEnrollment) {
             return next(HttpError(409, 'Already enrolled in this course'));
         }
-        // Create the enrollment
+       
         const newEnrollment = await Enrollment.create({
             idLEARNER: learner.idLEARNER,
             idCOURSE: courseId,

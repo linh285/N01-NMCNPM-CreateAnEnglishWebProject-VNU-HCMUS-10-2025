@@ -76,7 +76,7 @@ exports.getProgressByCourse = async (req, res, next) => {
         const learner = await Learner.findOne({ where: { idACCOUNT: accountId } });
         if (!learner) return next(HttpError(404, 'Learner not found'));
 
-        // 2. Phải tìm Enrollment trước (Vì Progress gắn vào Enrollment)
+        // 2. Progress gắn vào Enrollment
         const enrollment = await Enrollment.findOne({
             where: {
                 idLEARNER: learner.idLEARNER,

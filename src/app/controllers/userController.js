@@ -14,7 +14,6 @@ exports.getProfile = async (req, res, next) => {
         }
 
         if (role === 'LEARNER') {
-            // nhét thêm một cái chìa khóa mới tên là learnerDetails vào cái túi dữ liệu thậ
             const learnerDetails = await Learner.findOne({ where: { idACCOUNT: id } });
             if (learnerDetails) {
                 // gan them thong tin chi tiet vao profile
@@ -44,17 +43,15 @@ exports.getProfile = async (req, res, next) => {
 exports.updateProfile = async (req, res, next) => {
     try {
         const { id, role } = req.user;
-        const updates = req.body; // Dữ liệu cập nhật từ client
+        const updates = req.body; 
         let account = await Account.findByPk(id);
 
         if (!account) {
             throw HttpError(404, 'User not found');
         }
 
-        // Cập nhật thông tin chung trong bảng Account
         await Account.update(updates, { where: { idACCOUNT: id } });
 
-        // Cập nhật thông tin chi tiết theo vai trò
         if (role === 'LEARNER') {
             await Learner.update(updates, { where: { idACCOUNT: id } });
         } else if (role === 'TEACHER') {

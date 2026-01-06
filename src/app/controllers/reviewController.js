@@ -1,7 +1,7 @@
 const { Review, Course, Learner, Enrollment, Teacher } = require('../models');
 const HttpError = require('http-errors');
 
-// 1. [POST] /reviews (Viết đánh giá mới)
+// 1. [POST] /reviews 
 exports.createReview = async (req, res, next) => {
     try {
         const { id: accountId } = req.user;
@@ -13,13 +13,13 @@ exports.createReview = async (req, res, next) => {
         const learner = await Learner.findOne({ where: { idACCOUNT: accountId } });
         if (!learner) return next(HttpError(404, 'Learner profile not found'));
 
-        // 2. Check xem đã mua khóa học chưa? (Chưa mua miễn đánh giá)
+        // 2. Chưa mua ko dc đánh giá
         const isEnrolled = await Enrollment.findOne({
             where: { idLEARNER: learner.idLEARNER, idCOURSE: courseId }
         });
         if (!isEnrolled) return next(HttpError(403, 'You must enroll in this course to review it'));
 
-        // 3. Check xem đã đánh giá lần nào chưa? (Mỗi người 1 lần thôi)
+        // 3. Chưa đánh giá lần nào thì mới được đánh giá
         const existingReview = await Review.findOne({
             where: { idLEARNER: learner.idLEARNER, idCOURSE: courseId }
         });
@@ -43,7 +43,7 @@ exports.createReview = async (req, res, next) => {
     }
 };
 
-// 2. [GET] /courses/:courseId/reviews (Xem đánh giá của 1 khóa học)
+// 2. [GET] /courses/:courseId/reviews 
 exports.getReviewsByCourse = async (req, res, next) => {
     try {
         const { courseId } = req.params;
@@ -53,7 +53,7 @@ exports.getReviewsByCourse = async (req, res, next) => {
             include: [{
                 model: Learner,
                 as: 'learner',
-                attributes: ['fullName', 'avatarUrl'] // Lấy tên và avatar người khen
+                attributes: ['fullName', 'avatarUrl'] 
             }],
             order: [['createdAt', 'DESC']] 
         });
@@ -83,22 +83,18 @@ exports.deleteReview = async (req, res, next) => {
         });
         if (!review) return next(HttpError(404, 'Review not found'));
 
-        // Nếu là Learner -> Phải là chính chủ mới được xóa
+        // Phải là chính chủ mới được xóa
         if (role === 'LEARNER') {
             const learner = await Learner.findOne({ where: { idACCOUNT: accountId } });
-            // So sánh idLEARNER trong review và idLEARNER của người đang login
             if (!learner || review.idLEARNER !== learner.idLEARNER) {
                 return next(HttpError(403, 'You can only delete your own review'));
             }
         } else if (role === 'TEACHER') {
-            // 1. Tìm thông tin Teacher từ accountId
             const teacher = await Teacher.findOne({ where: { idACCOUNT: accountId } });
             if (!teacher) return next(HttpError(404, 'Teacher profile not found'));
 
-            // 2. Tìm khóa học của review này để xem chủ là ai
             const course = await Course.findByPk(review.idCOURSE);
             
-            // 3. So sánh idTEACHER của khóa học với idTEACHER của người đang login
             if (!course || course.idTEACHER !== teacher.idTEACHER) {
                 return next(HttpError(403, 'You can only delete reviews for your own courses'));
             }
@@ -113,7 +109,7 @@ exports.deleteReview = async (req, res, next) => {
     }
 };
 
-// 4. [PUT] /reviews/:id (Cập nhật đánh giá - Chỉ cho chính chủ)
+// 4. [PUT] /reviews/:id (Chỉ cho chính chủ)
 exports.updateReview = async (req, res, next) => {
     try {
         const { reviewId } = req.params;

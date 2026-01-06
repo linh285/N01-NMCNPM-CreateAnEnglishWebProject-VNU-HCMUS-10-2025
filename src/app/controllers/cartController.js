@@ -1,7 +1,7 @@
 const { CartItem, Course, Learner, Enrollment } = require('../models');
 const HttpError = require('http-errors');
 
-// 1. [POST] /cart (Thêm 1 khóa học vào giỏ)
+// 1. [POST] /cart 
 exports.addToCart = async (req, res, next) => {
     try {
         const { id: accountId } = req.user;
@@ -17,13 +17,13 @@ exports.addToCart = async (req, res, next) => {
         const course = await Course.findByPk(courseId);
         if (!course) throw HttpError(404, 'Course not found');
 
-        // 3. Check: Đã mua khóa này chưa? (Nếu mua rồi thì ko cho thêm vào giỏ)
+        // 3. Nếu mua rồi thì ko cho thêm vào giỏ
         const isEnrolled = await Enrollment.findOne({
             where: { idLEARNER: learner.idLEARNER, idCOURSE: courseId }
         });
         if (isEnrolled) throw HttpError(409, 'You have already enrolled in this course');
 
-        // 4. Check: Đã có trong giỏ hàng chưa?
+        // 4. Nếu đã có trong giỏ hàng thì ko cho thêm
         const existingItem = await CartItem.findOne({
             where: { idLEARNER: learner.idLEARNER, idCOURSE: courseId }
         });
@@ -46,7 +46,7 @@ exports.addToCart = async (req, res, next) => {
     }
 };
 
-// 2. [GET] /cart (Xem giỏ hàng của tôi)
+// 2. [GET] /cart 
 exports.getMyCart = async (req, res, next) => {
     try {
         const { id: accountId } = req.user;
@@ -61,10 +61,10 @@ exports.getMyCart = async (req, res, next) => {
                     attributes: ['idCOURSE', 'title', 'price', 'thumbnailUrl']
                 }
             ],
-            order: [['addedAt', 'DESC']] // Mới thêm hiện lên đầu
+            order: [['addedAt', 'DESC']] 
         });
 
-        // Dùng reduce để cộng dồn,Tính tạm tổng tiền (cho các món đang được chọn)
+        // Tính tạm tổng tiền
         const total = cartItems.reduce((sum, item) => {
             return item.isSelected ? sum + parseFloat(item.course.price) : sum;
         }, 0);
@@ -80,7 +80,7 @@ exports.getMyCart = async (req, res, next) => {
     }
 };
 
-// 3. [DELETE] /cart/:id (Xóa khỏi giỏ hàng)
+// 3. [DELETE] /cart/:id 
 exports.removeFromCart = async (req, res, next) => {
     try {
         const { idCART_ITEM } = req.params; 
@@ -92,7 +92,7 @@ exports.removeFromCart = async (req, res, next) => {
 
         if (!item) throw HttpError(404, 'Item not found in cart');
 
-        // Check Có phải giỏ hàng của mình không mà đòi xóa?
+        // Chỉ được xóa mục trong giỏ của chính mình
         if (item.idLEARNER !== learner.idLEARNER) {
             throw HttpError(403, 'You can only remove items from your own cart');
         }
@@ -106,7 +106,7 @@ exports.removeFromCart = async (req, res, next) => {
     }
 };
 
-// 4. [PATCH] /cart/:id/select (Chọn/Bỏ chọn để tính tiền)
+// 4. [PATCH] /cart/:id/select
 exports.toggleSelection = async (req, res, next) => {
     try {
         const { idCART_ITEM } = req.params; 

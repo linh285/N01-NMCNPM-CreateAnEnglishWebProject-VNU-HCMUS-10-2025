@@ -1,7 +1,7 @@
 const { Account, Learner, Teacher, Admin } = require('../models');
 const HttpError = require('http-errors');
 const { signAuth } = require('../middlewares/authMiddleware');
-const bcrypt = require('bcryptjs'); // thư viện bảo mật
+const bcrypt = require('bcryptjs'); 
 
 exports.register = async (req, res, next) => {
     try {
@@ -99,6 +99,9 @@ exports.login = async (req, res, next) => {
         const { email, password } = req.body;
         const user = await Account.findOne({ where: { email } });
 
+        if (!user.isActive) {
+        throw HttpError(403, 'Your account has been locked by Admin.');
+    }
         //  SO SÁNH MẬT KHẨU 
         // user.password trong DB là dạng hash ($2a$10$...)
         // password người dùng nhập là dạng thô (123456)

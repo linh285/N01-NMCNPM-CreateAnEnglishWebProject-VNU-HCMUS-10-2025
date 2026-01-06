@@ -11,7 +11,7 @@ exports.createSchedule = async (req, res, next) => {
             throw HttpError(400, 'idCOURSE, location, and startTime are required');
         }
 
-        // 1. Tìm khóa học và check quyền
+        // Tìm khóa học và check quyền
         const course = await Course.findByPk(idCOURSE);
         if (!course) throw HttpError(404, 'Course not found');
 
@@ -22,7 +22,6 @@ exports.createSchedule = async (req, res, next) => {
             }
         }
 
-        // 2. Tạo lịch (Sequelize sẽ tự báo lỗi nếu idCOURSE đã tồn tại lịch do unique: true)
         const schedule = await OfflineSchedule.create({
             idCOURSE,
             location,
@@ -49,7 +48,7 @@ exports.getScheduleByCourse = async (req, res, next) => {
         const { idCOURSE } = req.params;
 
         const schedule = await OfflineSchedule.findOne({
-            where: { idCOURSE },
+            where: { idCOURSE: idCOURSE },
             include: [{ model: Course, as: 'course', attributes: ['title', 'price'] }]
         });
 

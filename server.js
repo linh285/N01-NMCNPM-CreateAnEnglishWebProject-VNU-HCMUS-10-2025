@@ -21,7 +21,7 @@ const port = process.env.PORT || 3000;
 const cors = require('cors');
 app.use(cors());
 
-// 2. BẬT MORGAN để theo dõi mọi request (Xóa comment dòng này)
+// 2. BẬT MORGAN để theo dõi mọi request 
 app.use(morgan('dev')); 
 
 // 3. Cấu hình Static files
@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 // 4. tạo kết nối db
 connect();
 
-// Đồng bộ tạo bảng (Chạy 1 lần đầu thì để force: true, sau đó sửa thành false)
+// Đồng bộ tạo bảng
 models.sequelize.sync({ force: false, alter: true })
     .then(() => {
         console.log('Đã đồng bộ Database thành công!');
@@ -43,14 +43,13 @@ models.sequelize.sync({ force: false, alter: true })
         console.error('Lỗi tạo bảng:', err);
     });
 
-// routes init
+
 route(app);
 
 // 8. xử lí lỗi
 solvingError(app);
 
 // start server
-
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });

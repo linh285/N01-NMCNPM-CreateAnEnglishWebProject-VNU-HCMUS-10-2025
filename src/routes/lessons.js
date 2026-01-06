@@ -6,9 +6,10 @@ const restrictTo  = require('../app/middlewares/restrictTo');
 
 const lessonController = require('../app/controllers/lessonController');
 
-router.put('/:id', isAuth, restrictTo('TEACHER'), lessonController.updateLesson);
-router.delete('/:id', isAuth, restrictTo('TEACHER'), lessonController.deleteLesson);
-router.post('/:courseId', isAuth, restrictTo('TEACHER'), lessonController.createLesson);
+router.put('/:id', isAuth, restrictTo('TEACHER', 'ADMIN'), lessonController.updateLesson);
+router.delete('/:id', isAuth, restrictTo('TEACHER', 'ADMIN'), lessonController.deleteLesson);
+router.post('/:courseId', isAuth, restrictTo('TEACHER', 'ADMIN'), lessonController.createLesson);
+
 router.get('/:id', isAuth, lessonController.getLessonById);
 // get by idCourse
 router.get('/:courseId/lessons', isAuth, lessonController.getLessonsByCourse);

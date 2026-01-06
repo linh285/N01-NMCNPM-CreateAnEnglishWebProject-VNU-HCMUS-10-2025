@@ -19,7 +19,7 @@ exports.submitSpeakingResult = async (req, res, next) => {
         const lesson = await Lesson.findByPk(lessonId);
         if (!lesson) throw HttpError(404, 'Lesson not found');
 
-        // 3. Check xem đã mua khóa học chứa bài này chưa?
+        // 3. Check mua chua
         const isEnrolled = await Enrollment.findOne({
             where: { idLEARNER: learner.idLEARNER, idCOURSE: lesson.idCOURSE }
         });
@@ -47,7 +47,7 @@ exports.submitSpeakingResult = async (req, res, next) => {
     }
 };
 
-// 2. [GET] /speaking-results/lesson/:lessonId (Xem lịch sử luyện nói của bài này)
+// 2. [GET] /speaking-results/lesson/:lessonId 
 exports.getMySpeakingHistory = async (req, res, next) => {
     try {
         const { id: accountId } = req.user;

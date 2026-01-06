@@ -1,13 +1,12 @@
 const { Question, Lesson, Course, Teacher } = require('../models');
 const HttpError = require('http-errors');
 
-// 1. [POST] /questions (Tạo câu hỏi mới cho bài học)
+// 1. [POST] /questions 
 exports.createQuestion = async (req, res, next) => {
     try {
         const { id: accountId, role } = req.user;
         const { lessonId, questionText, optionsJson, correctAnswer, mediaUrl } = req.body;
 
-        // Validation
         if (!lessonId || !questionText || !optionsJson || !correctAnswer) {
             throw HttpError(400, 'Missing required fields (lessonId, questionText, optionsJson, correctAnswer)');
         }
@@ -17,14 +16,14 @@ exports.createQuestion = async (req, res, next) => {
             throw HttpError(400, 'optionsJson must be an array with at least 2 options');
         }
 
-        // 1. Tìm Lesson và kèm theo Course để check quyền sở hữu
+        // 1. Tìm Lesson Course để check quyền 
         const lesson = await Lesson.findByPk(lessonId, {
             include: [{ model: Course, as: 'course' }]
         });
 
         if (!lesson) throw HttpError(404, 'Lesson not found');
 
-        // 2. Check quyền: Chỉ Teacher chủ sở hữu hoặc Admin mới được tạo
+        // 2. Check quyền
         if (role === 'TEACHER') {
             const teacher = await Teacher.findOne({ where: { idACCOUNT: accountId } });
             if (!teacher || lesson.course.idTEACHER !== teacher.idTEACHER) {
@@ -32,7 +31,6 @@ exports.createQuestion = async (req, res, next) => {
             }
         }
 
-        // 3. Tạo câu hỏi
         const newQuestion = await Question.create({
             idLESSON: lessonId,
             questionText,
@@ -51,8 +49,7 @@ exports.createQuestion = async (req, res, next) => {
     }
 };
 
-// 2. [GET] /questions/lesson/:lessonId (Lấy danh sách câu hỏi của 1 bài học)
-// Dùng cho cả Học viên (để làm bài) và Giáo viên (để xem lại)
+// 2. [GET] /questions/lesson/:lessonId 
 exports.getQuestionsByLesson = async (req, res, next) => {
     try {
         const { lessonId } = req.params;
@@ -62,7 +59,6 @@ exports.getQuestionsByLesson = async (req, res, next) => {
 
         const questions = await Question.findAll({
             where: { idLESSON: lessonId },
-            // Không cần order vì thứ tự câu hỏi có thể random ở frontend
         });
 
         res.status(200).json({
@@ -75,7 +71,7 @@ exports.getQuestionsByLesson = async (req, res, next) => {
     }
 };
 
-// 3. [PUT] /questions/:id (Sửa câu hỏi)
+// 3. [PUT] /questions/:id 
 exports.updateQuestion = async (req, res, next) => {
     try {
         const { idQuestion } = req.params;
