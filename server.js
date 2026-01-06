@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: true }));
 connect();
 
 // Đồng bộ tạo bảng
-models.sequelize.sync({ force: false, alter: true })
+models.sequelize.sync({ force: true, alter: true })
     .then(() => {
         console.log('Đã đồng bộ Database thành công!');
     })
