@@ -49,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         contentType: {
-            type: DataTypes.ENUM('Video', 'Reading', 'Quiz', 'Speaking'),
+            type: DataTypes.ENUM('Video', 'Reading', 'Quiz', 'Speaking', 'Writing', 'Pronunciation', 'Mixed', 'Other', 'Audio'),
             allowNull: false
         },
         mediaUrl: {
@@ -73,7 +73,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: 0
         },
         learningType: {
-            type: DataTypes.ENUM('Vocabulary', 'Grammar', 'Listening', 'Speaking'),
+            type: DataTypes.ENUM('Vocabulary', 'Grammar', 'Listening', 'Speaking', 'Reading', 'Writing', 'Pronunciation'),
             allowNull: false
         },
         // Khóa ngoại
