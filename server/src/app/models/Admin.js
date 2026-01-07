@@ -4,9 +4,9 @@ module.exports = (sequelize, DataTypes) => {
     class Admin extends Model {
         static associate(models) {
             // Admin sở hữu 1 tài khoản đăng nhập (1-1)
-            Admin.hasMany(models.Account, {
-                foreignKey: 'ADMIN_idADMIN',
-                as: 'accounts'
+            Admin.belongsTo(models.Account, {
+                foreignKey: 'idACCOUNT',
+                as: 'account'
             });
         }
     }
@@ -40,8 +40,15 @@ module.exports = (sequelize, DataTypes) => {
         avatarUrl: {
             type: DataTypes.STRING(2048),
             allowNull: true
+        },
+        // FK
+        idACCOUNT: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: { model: 'ACCOUNTS', key: 'idACCOUNT' }
         }
-    }, {
+    }, 
+    {
         sequelize,
         modelName: 'Admin',
         tableName: 'ADMINS', // Khớp tên bảng trong SQL

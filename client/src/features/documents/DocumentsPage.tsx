@@ -1,10 +1,10 @@
-
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Filter } from 'lucide-react';
 import Sidebar from '../../components/common/Sidebar';
 import DocumentCard from './DocumentCard';
 import { useTheme } from '../../context/ThemeContext';
-import { MOCK_DOCUMENTS } from '../../data/mockData';
+// import { MOCK_DOCUMENTS } from '../../data/mockData'; // Removed
+import { courseService } from '../../services/course.service';
 
 interface DocumentsPageProps {
     type: 'free' | 'paid' | 'offline' | 'test';
@@ -14,28 +14,88 @@ const DocumentsPage = ({ type }: DocumentsPageProps) => {
     const { isDarkMode } = useTheme();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+    // Data State
+    const [documents, setDocuments] = useState<any[]>([]); // Use appropriate type if available
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
+
     // Filter States
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeTab, setActiveTab] = useState('all'); // 'all' | 'learning' (Shortcut for Status)
+    const [activeTab, setActiveTab] = useState('all'); // 'all' | 'learning'
     const [selectedAuthor, setSelectedAuthor] = useState('All');
-    const [selectedStatus, setSelectedStatus] = useState('All'); // 'All', 'Completed', 'In Progress', 'Not Started'
+    const [selectedStatus, setSelectedStatus] = useState('All');
     const [showFilters, setShowFilters] = useState(false);
+
+    // Fetch Data
+    useEffect(() => {
+        const fetchCourses = async () => {
+            setIsLoading(true);
+            try {
+                // Determine API endpoint based on type
+                // For now, fetch ALL and filter client side to ensure we see what's happening
+                const response = await courseService.getAllCourses();
+                console.log("RAW API DATA:", response); // DEBUG
+
+                // Backend returns: { status: 'success', data: { courses: [...] } }
+                // courseService.getAllCourses() returns response.data (the body)
+                // So 'response' variable here IS the body.
+                // Therefore we need response.data.courses
+                const coursesList = response.data?.courses || [];
+                console.log("Extracted coursesList:", coursesList); // DEBUG
+
+                const mappedData = coursesList.map((doc: any) => {
+                    let uiType = 'paid';
+                    // Careful with case sensitivity and data types
+                    const isOffline = doc.type === 'Offline' || doc.type === 'offline';
+                    const isTest = doc.category === 'Test' || doc.category === 'test';
+                    const price = parseFloat(doc.price) || 0;
+
+                    if (isOffline) uiType = 'offline';
+                    else if (isTest) uiType = 'test';
+                    else if (price === 0) uiType = 'free';
+
+                    // console.log(`Doc: ${doc.title}, RawType: ${doc.type}, Cat: ${doc.category}, Price: ${price} -> UI: ${uiType}`);
+
+                    return {
+                        ...doc,
+                        type: uiType,
+                        id: doc.idCOURSE || doc.id || doc._id,
+                        // Handle multiple possible image fields
+                        image: doc.thumbnailUrl || doc.thumbnail || doc.image || 'https://via.placeholder.com/300',
+                        author: doc.teacher?.fullName || doc.author?.fullName || 'Unknown',
+                        progress: 0,
+                        isCompleted: false,
+                        price: price
+                    };
+                });
+
+                console.log("MAPPED DATA:", mappedData); // DEBUG
+                setDocuments(mappedData);
+            } catch (err) {
+                console.error("Fetch error:", err);
+                setError('Failed to load documents.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchCourses();
+    }, []);
 
     // Derived Data for Dropdowns
     const uniqueAuthors = useMemo(() => {
-        const authors = new Set(MOCK_DOCUMENTS.map(doc => doc.author).filter(Boolean));
+        const authors = new Set(documents.map(doc => doc.author).filter(Boolean));
         return ['All', ...Array.from(authors)];
-    }, []);
+    }, [documents]);
 
     const filteredDocs = useMemo(() => {
-        return MOCK_DOCUMENTS.filter(doc => {
-            // 1. Type Filter (Route based)
+        return documents.filter(doc => {
+            // 1. Type Filter (Route based) mapping
+            // doc.type is already mapped to 'free' | 'paid' | 'offline' | 'test' in fetchCourses
             if (doc.type !== type) return false;
 
             // 2. Tab Filter (Quick Access)
             if (activeTab === 'learning') {
-                // Learning = Started (progress > 0) AND Not Completed? Or just Started?
-                // Usually "Learning" implies In Progress.
                 if (!doc.progress || doc.progress === 0 || doc.isCompleted) return false;
             }
 
@@ -45,8 +105,16 @@ const DocumentsPage = ({ type }: DocumentsPageProps) => {
                 return false;
             }
 
-            // 4. Author Filter
-            if (selectedAuthor !== 'All' && doc.author !== selectedAuthor) return false;
+            // 4. Author Filter / Source Filter
+            if (selectedAuthor !== 'All') {
+                if (selectedAuthor === 'Teacher') {
+                    // Show all EXCEPT English Hub
+                    if (doc.author === 'ENGLISH HUB') return false;
+                } else {
+                    // Specific author (or ENGLISH HUB explicitly selected)
+                    if (doc.author !== selectedAuthor) return false;
+                }
+            }
 
             // 5. Status Filter
             if (selectedStatus !== 'All') {
@@ -57,7 +125,7 @@ const DocumentsPage = ({ type }: DocumentsPageProps) => {
 
             return true;
         });
-    }, [type, activeTab, searchQuery, selectedAuthor, selectedStatus]);
+    }, [type, activeTab, searchQuery, selectedAuthor, selectedStatus, documents]);
 
     // Dynamic Banner Config
     const getBannerConfig = () => {
@@ -199,6 +267,25 @@ const DocumentsPage = ({ type }: DocumentsPageProps) => {
                                     </select>
                                 </div>
 
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold uppercase text-gray-500">Nguồn tài liệu</label>
+                                    <select
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            // Handle filtering logic in useMemo
+                                            if (val === 'System') setSelectedAuthor('ENGLISH HUB');
+                                            else if (val === 'Teacher') setSelectedAuthor('Teacher'); // Will need special handling
+                                            else setSelectedAuthor('All');
+                                        }}
+                                        className={`w - full p - 2.5 rounded - lg border outline - none ${isDarkMode ? 'bg-black/20 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-800'
+                                            } `}
+                                    >
+                                        <option value="All">Tất cả</option>
+                                        <option value="System">Tài liệu hệ thống (English Hub)</option>
+                                        <option value="Teacher">Giáo viên đóng góp</option>
+                                    </select>
+                                </div>
+
                                 <div className="flex items-end">
                                     <button
                                         onClick={() => {
@@ -217,7 +304,9 @@ const DocumentsPage = ({ type }: DocumentsPageProps) => {
                     </div>
 
                     {/* Grid */}
-                    {filteredDocs.length > 0 ? (
+                    {isLoading ? (
+                        <div className="flex justify-center p-20">Loading...</div>
+                    ) : filteredDocs.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {filteredDocs.map(doc => (
                                 <DocumentCard key={doc.id} data={doc} />
@@ -226,14 +315,14 @@ const DocumentsPage = ({ type }: DocumentsPageProps) => {
                     ) : (
                         <div className="flex flex-col items-center justify-center py-20 text-center opacity-50">
                             <Search size={48} className="mb-4" />
-                            <h3 className="text-xl font-bold">Không tìm thấy tài liệu nào</h3>
+                            <h3 className="text-xl font-bold">Không tìm thấy tài liệu nào {error && `(${error})`}</h3>
                             <p>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
                         </div>
                     )}
 
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

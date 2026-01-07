@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
 import { useTheme } from '../../context/ThemeContext';
-import { MOCK_DOCUMENTS } from '../../data/mockData';
+// import { MOCK_DOCUMENTS } from '../../data/mockData';
 import { ArrowLeft, Clock, Share2, User, PlayCircle, BookOpen, FileText, CheckCircle, Download } from 'lucide-react';
+import { courseService } from '../../services/course.service';
 
 const DocumentDetailPage = () => {
     const { id } = useParams();
@@ -11,12 +12,37 @@ const DocumentDetailPage = () => {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Find Document
-    const doc = MOCK_DOCUMENTS.find(d => d.id === Number(id));
+    const [doc, setDoc] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCourse = async () => {
+            if (!id) return;
+            setIsLoading(true);
+            try {
+                // Fetch real course
+                const data = await courseService.getCourseById(id);
+                // Map fields if needed
+                setDoc({
+                    ...data,
+                    // Ensure fields exist for UI
+                    image: data.thumbnail || data.image || 'https://via.placeholder.com/800x600',
+                    author: data.author?.fullName || data.author || 'Unknown',
+                    type: data.type || 'Online', // Default
+                });
+            } catch (err) {
+                console.error("Failed to load course", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchCourse();
+    }, [id]);
 
     // Offline Tabs State
     const [activeOfflineTab, setActiveOfflineTab] = useState('info'); // info, schedule, curriculum, commitment
 
+    if (isLoading) return <div className="p-10 flex justify-center">Loading...</div>;
     if (!doc) return <div className="p-10">Document not found</div>;
 
     // Determine Layout Type

@@ -4,20 +4,20 @@ module.exports = (sequelize, DataTypes) => {
     class Account extends Model {
         static associate(models) {
             // Account thuộc về 1 Learner
-            Account.belongsTo(models.Learner, {
-                foreignKey: 'LEARNER_idLEARNER',
+            Account.hasOne(models.Learner, {
+                foreignKey: 'idACCOUNT',
                 as: 'learnerInfo'
             });
 
             // Account thuộc về 1 Admin
-            Account.belongsTo(models.Admin, {
-                foreignKey: 'ADMIN_idADMIN',
+            Account.hasOne(models.Admin, {
+                foreignKey: 'idACCOUNT',
                 as: 'adminInfo'
             });
 
             // Account thuộc về 1 Teacher
-            Account.belongsTo(models.Teacher, {
-                foreignKey: 'TEACHER_idTEACHER',
+            Account.hasOne(models.Teacher, {
+                foreignKey: 'idACCOUNT',
                 as: 'teacherInfo'
             });
         }
@@ -47,26 +47,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ENUM('active', 'banned', 'pending'),
             defaultValue: 'active'
         },
-        // Khóa ngoại trỏ về 3 bảng (cho phép Null vì 1 account chỉ thuộc 1 loại)
-        LEARNER_idLEARNER: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            references: { model: 'LEARNERS', key: 'idLEARNER' }
-        },
-        ADMIN_idADMIN: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            references: { model: 'ADMINS', key: 'idADMIN' }
-        },
-        TEACHER_idTEACHER: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            references: { model: 'TEACHERS', key: 'idTEACHER' }
-        }
     }, {
         sequelize,
-        modelName: 'Account',
-        tableName: 'ACCOUNTS',
+        modelName: 'Account',  // java
+        tableName: 'ACCOUNTS',  // DB
         timestamps: true,
         updatedAt: false, // SQL không có updatedAt
         createdAt: 'createdAt'
@@ -74,3 +58,7 @@ module.exports = (sequelize, DataTypes) => {
 
     return Account;
 };
+/*
+   modelName: dùng trong codeJavascript
+    tableName: dùng để khớp với bảng trong SQL
+*/

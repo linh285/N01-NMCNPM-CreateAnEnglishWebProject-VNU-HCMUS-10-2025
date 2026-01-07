@@ -17,9 +17,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         { icon: Home, label: "Trang chủ", path: "/home", active: location.pathname === "/home" },
         { icon: Leaf, label: "Tài liệu miễn phí", path: "/documents/free", active: location.pathname === "/documents/free" },
         { icon: BookOpen, label: "Tài liệu trả phí", path: "/documents/paid", active: location.pathname === "/documents/paid" },
-        { icon: PlayCircle, label: "Khóa học offline", path: "/offline-courses", active: false },
-        { icon: FileText, label: "Bài kiểm tra", path: "/tests", active: false },
-        { icon: User, label: "Quản lý tài khoản", path: "/profile", active: false },
+        { icon: PlayCircle, label: "Khóa học offline", path: "/offline-courses", active: location.pathname === "/offline-courses" },
+        { icon: FileText, label: "Bài kiểm tra", path: "/tests", active: location.pathname === "/tests" },
+        { icon: User, label: "Quản lý tài khoản", path: "/profile", active: location.pathname === "/profile" },
     ];
 
     const bottomItems = [
@@ -66,8 +66,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                 key={index}
                                 onClick={() => navigate(item.path)}
                                 className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group ${item.active
-                                        ? 'bg-accent text-white shadow-lg shadow-accent/20 font-bold'
-                                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                                    ? 'bg-accent text-white shadow-lg shadow-accent/20 font-bold'
+                                    : 'text-gray-300 hover:bg-white/10 hover:text-white'
                                     }`}
                             >
                                 <item.icon size={22} strokeWidth={item.active ? 2.5 : 2} className={`transition-transform duration-300 group-hover:scale-110 ${item.active ? 'scale-110' : ''}`} />

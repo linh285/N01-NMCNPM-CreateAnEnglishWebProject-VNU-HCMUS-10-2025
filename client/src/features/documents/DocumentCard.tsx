@@ -27,7 +27,7 @@ const DocumentCard = ({ data }: DocumentProps) => {
         e.stopPropagation(); // Prevent card click
         if (data.type === 'paid') {
             addToCart(data);
-            alert('Đã thêm vào giỏ hàng!');
+            navigate('/cart');
         } else if (data.type === 'test') {
             navigate(`/documents/${data.id}`);
         } else {
@@ -109,7 +109,7 @@ const DocumentCard = ({ data }: DocumentProps) => {
                         className="bg-cyan-500 hover:bg-cyan-400 text-white px-6 py-2 rounded-full font-bold text-sm transition-all shadow-lg shadow-cyan-500/30 translate-y-4 group-hover:translate-y-0 duration-300 delay-200"
                     >
                         {data.type === 'paid'
-                            ? `Mua ngay $${data.price}`
+                            ? `Mua ngay ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.price || 0)}`
                             : data.type === 'test'
                                 ? (data.isCompleted ? 'Xem kết quả' : 'Làm bài ngay')
                                 : 'Học ngay'}
@@ -122,7 +122,7 @@ const DocumentCard = ({ data }: DocumentProps) => {
                 <h3 className="text-white font-bold text-lg line-clamp-1">{data.title}</h3>
                 <div className="flex justify-between items-center mt-1">
                     <p className="text-gray-300 text-xs font-medium">{data.author}</p>
-                    {data.type === 'paid' && <span className="text-cyan-400 font-bold bg-cyan-900/30 px-2 py-0.5 rounded text-xs">${data.price}</span>}
+                    {data.type === 'paid' && <span className="text-cyan-400 font-bold bg-cyan-900/30 px-2 py-0.5 rounded text-xs">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.price || 0)}</span>}
                 </div>
             </div>
         </div>

@@ -4,7 +4,8 @@ import { Eye, ArrowLeft, EyeOff } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
-import { MOCK_USERS, ROLES } from '../../data/mockData';
+import { ROLES } from '../../data/mockData';
+import { authService } from '../../services/auth.service';
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -17,26 +18,42 @@ const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        const user = MOCK_USERS.find((u: { email: string; role: string }) => u.email === email && u.role === role);
+        // Mock Admin Login Rule
+        if (email === 'admin' && password === 'password') {
+            // Mock Admin User Object
+            const mockAdminUser = {
+                email: 'admin@englishhub.com',
+                name: 'Administrator',
+                role: 'admin',
+                avatar: 'https://ui-avatars.com/api/?name=Admin&background=random'
+            };
 
-        if (user && user.password === password) {
-            // Success
-            login({
-                email: user.email,
-                name: user.name,
-                role: user.role as any,
-                avatar: user.avatar
-            });
+            // Login with mock data (Bypassing API for this specific case as requested)
+            // In a real scenario, this would still go through API
+            // But if API doesn't support "admin" username (email format), we mock it here.
+            login({ token: 'mock-admin-token', user: mockAdminUser });
+            navigate('/admin');
+            return;
+        }
+
+        try {
+            const data = await authService.login(email, password);
+            login(data); // data contains { token, user }
+
             // Redirect based on role
-            if (role === 'student') navigate('/home');
-            else if (role === 'teacher') alert('Chuyển đến trang Giáo Viên (Chưa làm)'); // Placeholder for now
-            else alert('Chuyển đến trang Admin (Chưa làm)');
-        } else {
-            setError('Thông tin đăng nhập không chính xác!');
+            // The API returns role in UPPERCASE probably, so let's normalize
+            const userRole = data.user.role?.toLowerCase();
+            if (userRole === 'teacher') alert('Chuyển đến trang Giáo Viên (Chưa làm)');
+            else if (userRole === 'admin') navigate('/admin');
+            else navigate('/home'); // Student
+
+        } catch (err: any) {
+            console.error(err);
+            setError(err.response?.data?.message || 'Thông tin đăng nhập không chính xác!');
         }
     };
 
@@ -109,9 +126,9 @@ const LoginPage = () => {
                     )}
 
                     <div className="space-y-2">
-                        <label className={`font-medium text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Email</label>
+                        <label className={`font-medium text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Email / Username</label>
                         <input
-                            type="email"
+                            type="text"
                             required
                             placeholder="example@gmail.com"
                             value={email}

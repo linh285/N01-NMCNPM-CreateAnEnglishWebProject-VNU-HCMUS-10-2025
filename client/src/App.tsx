@@ -12,30 +12,44 @@ import ProfilePage from './features/profile/ProfilePage';
 import CartPage from './features/cart/CartPage';
 import CheckoutPage from './features/cart/CheckoutPage';
 import TestTakingPage from './features/tests/TestTakingPage';
+import AdminLayout from './layouts/AdminLayout';
+import AdminDashboardPage from './features/admin/AdminDashboardPage';
+import AdminUsersPage from './features/admin/AdminUsersPage';
+
+import { NotificationProvider } from './context/NotificationContext';
 
 function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <CartProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<IntroPage />} />
-              <Route path="/home" element={<LandingPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/documents/free" element={<DocumentsPage type="free" />} />
-              <Route path="/documents/paid" element={<DocumentsPage type="paid" />} />
-              <Route path="/offline-courses" element={<DocumentsPage type="offline" />} />
-              <Route path="/tests" element={<DocumentsPage type="test" />} />
-              <Route path="/documents/:id" element={<DocumentDetailPage />} />
-              <Route path="/test/:id/take" element={<TestTakingPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-            </Routes>
-          </BrowserRouter>
-        </CartProvider>
+        <NotificationProvider>
+          <CartProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<IntroPage />} />
+                <Route path="/home" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/documents/free" element={<DocumentsPage type="free" />} />
+                <Route path="/documents/paid" element={<DocumentsPage type="paid" />} />
+                <Route path="/offline-courses" element={<DocumentsPage type="offline" />} />
+                <Route path="/tests" element={<DocumentsPage type="test" />} />
+                <Route path="/documents/:id" element={<DocumentDetailPage />} />
+                <Route path="/test/:id/take" element={<TestTakingPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboardPage />} />
+                  <Route path="users" element={<AdminUsersPage />} />
+                  <Route path="*" element={<div className="p-10">Page under construction</div>} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </CartProvider>
+        </NotificationProvider>
       </ThemeProvider>
     </AuthProvider>
   );

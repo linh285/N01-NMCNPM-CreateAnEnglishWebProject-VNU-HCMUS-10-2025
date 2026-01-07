@@ -54,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
         sequelize,
         modelName: 'SpeakingResult',
         tableName: 'SPEAKING_RESULTS',
-        timestamps: false // Vì đã có cột submittedAt tự quản lý rồi
+        timestamps: false 
     });
 
     return SpeakingResult;

@@ -4,6 +4,8 @@ import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useTheme } from '../../context/ThemeContext';
 import { ROLES } from '../../data/mockData';
+import { authService } from '../../services/auth.service';
+import { useNotification } from '../../context/NotificationContext';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -27,7 +29,9 @@ const RegisterPage = () => {
         if (e.target.name === 'email' && e.target.value === '01@gmail.com') setIsMockUser(true);
     };
 
-    const handleRegister = (e: React.FormEvent) => {
+    const { addNotification } = useNotification();
+
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
@@ -36,15 +40,27 @@ const RegisterPage = () => {
             return;
         }
 
-        // Validation Rule: Password > 6 chars (Skip for mock user)
-        if (!isMockUser && formData.password.length < 6) {
+        if (formData.password.length < 6) {
             setError('Mật khẩu phải có ít nhất 6 ký tự!');
             return;
         }
 
-        // Success (Mock)
-        alert('Đăng ký thành công! (Mock)');
-        navigate('/login');
+        try {
+            // role is state 'student' | 'teacher' (lowercase ids from ROLES)
+            // API expects Uppercase probably? Docs say "LEARNER", "TEACHER".
+            // ROLES in mockData are likely lowercase id.
+            // Let's map it.
+            const apiRole = role === 'teacher' ? 'TEACHER' : 'LEARNER';
+
+            await authService.register(formData.email, formData.password, apiRole);
+
+            addNotification('Đăng ký thành công!', 'Chào mừng bạn đến với English HUB. Hãy đăng nhập ngay.', 'success');
+            alert('Đăng ký thành công! Vui lòng đăng nhập.');
+            navigate('/login');
+        } catch (err: any) {
+            console.error(err);
+            setError(err.response?.data?.message || 'Đăng ký thất bại. Email có thể đã tồn tại.');
+        }
     };
 
     return (

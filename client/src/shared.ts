@@ -13,5 +13,14 @@ export const APP_INFO = {
         linkedin: "#",
         mail: "#",
         youtube: "#"
-    },
+    }
 };
+
+export interface User {
+    _id?: string;
+    email: string;
+    name: string;
+    role: 'student' | 'teacher' | 'admin' | string;
+    avatar?: string;
+    hasTakenPlacementTest?: boolean;
+}

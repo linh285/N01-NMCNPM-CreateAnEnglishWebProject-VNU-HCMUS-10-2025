@@ -6,10 +6,17 @@ import Sidebar from '../../components/common/Sidebar';
 import { APP_INFO } from '../../shared';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
+import { useNotification } from '../../context/NotificationContext';
 
 const LandingPage = () => {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Hooks
+    const { cartCount } = useCart();
+    const { unreadCount, notifications, markAsRead, clearAll } = useNotification();
+    const [showNotifications, setShowNotifications] = useState(false);
 
     // Use global theme state
     const { isDarkMode, toggleTheme } = useTheme();
@@ -27,16 +34,15 @@ const LandingPage = () => {
 
     return (
         <div className={`min-h-screen transition-all duration-500 font-sans ${isDarkMode
-            ? 'bg-[#0B1120] text-gray-100 dark' // Simplified soft dark background (Slate 950)
+            ? 'bg-[#0B1120] text-gray-100 dark'
             : 'bg-gray-50 text-gray-800'
             }`}>
 
-            {/* Background Orbs for Glass Effect (Only in Dark Mode) */}
+            {/* Background Orbs... (Keep same) */}
             {isDarkMode && (
                 <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
                     <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-900/20 rounded-full blur-[128px]"></div>
                     <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-900/20 rounded-full blur-[128px]"></div>
-                    {/* Tiny stars/noise texture */}
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
                 </div>
             )}
@@ -46,7 +52,7 @@ const LandingPage = () => {
 
                 <div className="flex-1 md:ml-64 transition-all duration-300 flex flex-col min-h-screen">
 
-                    {/* Header - Glass Effect */}
+                    {/* Header */}
                     <header className={`sticky top-0 z-30 flex justify-between md:justify-end items-center px-6 md:px-10 py-4 md:py-5 gap-6 border-b transition-all duration-500 ${isDarkMode
                         ? 'bg-black/20 backdrop-blur-xl border-white/5 shadow-2xl shadow-black/5'
                         : 'bg-white/80 backdrop-blur-md border-gray-100'
@@ -59,7 +65,7 @@ const LandingPage = () => {
                         </button>
 
                         <div className="flex items-center gap-4 md:gap-6">
-                            {/* Dark Mode Toggle */}
+                            {/* Theme Toggle */}
                             <button
                                 onClick={toggleTheme}
                                 className={`p-2 rounded-full transition-all duration-300 ${isDarkMode
@@ -70,16 +76,59 @@ const LandingPage = () => {
                                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                             </button>
 
-                            <div className="flex items-center gap-2 md:gap-4">
-                                <button className={`p-2 transition-colors ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-primary'}`}>
+                            <div className="flex items-center gap-2 md:gap-4 relative">
+                                {/* Cart Icon */}
+                                <button
+                                    onClick={() => navigate('/cart')}
+                                    className={`p-2 transition-colors relative ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-primary'}`}
+                                >
                                     <ShoppingCart size={24} strokeWidth={1.5} />
+                                    {cartCount > 0 && (
+                                        <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-bounce">
+                                            {cartCount}
+                                        </span>
+                                    )}
                                 </button>
-                                <button className={`p-2 transition-colors hidden sm:block ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-primary'}`}>
-                                    <FileText size={24} strokeWidth={1.5} />
-                                </button>
-                                <button className={`p-2 transition-colors ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-primary'}`}>
-                                    <Bell size={24} strokeWidth={1.5} />
-                                </button>
+
+                                {/* Notification Icon */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowNotifications(!showNotifications)}
+                                        className={`p-2 transition-colors relative ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-primary'}`}
+                                    >
+                                        <Bell size={24} strokeWidth={1.5} />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute top-0 right-1 w-3 h-3 bg-red-500 rounded-full ring-2 ring-white dark:ring-black"></span>
+                                        )}
+                                    </button>
+
+                                    {/* Notifications Dropdown */}
+                                    {showNotifications && (
+                                        <div className={`absolute right-0 top-full mt-4 w-80 rounded-2xl shadow-2xl border overflow-hidden animate-in fade-in slide-in-from-top-2 ${isDarkMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-100'}`}>
+                                            <div className="p-4 border-b border-gray-100/10 flex justify-between items-center">
+                                                <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Thông báo</h3>
+                                                <button onClick={clearAll} className="text-xs text-red-500 hover:underline">Xóa tất cả</button>
+                                            </div>
+                                            <div className="max-h-80 overflow-y-auto">
+                                                {notifications.length === 0 ? (
+                                                    <div className="p-8 text-center text-gray-500 text-sm">Chưa có thông báo nào</div>
+                                                ) : (
+                                                    notifications.map(n => (
+                                                        <div
+                                                            key={n.id}
+                                                            onClick={() => markAsRead(n.id)}
+                                                            className={`p-4 border-b border-gray-100/5 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors ${!n.read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                                                        >
+                                                            <h4 className={`text-sm font-bold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h4>
+                                                            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{n.message}</p>
+                                                            <span className="text-[10px] text-gray-400 mt-2 block">{new Date(n.timestamp).toLocaleTimeString()}</span>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {isAuthenticated && user ? (

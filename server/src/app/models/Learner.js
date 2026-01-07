@@ -3,10 +3,10 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Learner extends Model {
         static associate(models) {
-            // 1. QUAN HỆ TÀI KHOẢN (1-n)
-            Learner.hasMany(models.Account, {
-                foreignKey: 'LEARNER_idLEARNER',
-                as: 'accounts'
+            // 1. QUAN HỆ TÀI KHOẢN (1-1)
+            Learner.belongsTo(models.Account, {
+                foreignKey: 'idACCOUNT',
+                as: 'account'
             });
 
             // 2. QUAN HỆ MUA SẮM (1-N)
@@ -53,6 +53,12 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
+        // FK
+        idACCOUNT: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: { model: 'ACCOUNTS', key: 'idACCOUNT' }
+        },
         fullName: {
             type: DataTypes.STRING(100),
             allowNull: false
@@ -72,8 +78,8 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         englishLevel: {
-            type: DataTypes.ENUM('Beginner', 'Elementary', 'Intermediate', 'Advanced', 'IELTS'),
-            defaultValue: 'Beginner',
+            type: DataTypes.ENUM('A2', 'A1', 'B1', 'B2', 'C1', 'C2'),
+            defaultValue: 'A2',
             allowNull: false
         },
         gender: {
