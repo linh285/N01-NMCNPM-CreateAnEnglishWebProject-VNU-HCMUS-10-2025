@@ -9,6 +9,7 @@ const upload = require('../app/middlewares/uploadMiddleware');
 
 
 router.get('/lesson/:lessonId', isAuth, questionController.getQuestionsByLesson);
+router.get('/course/:courseId', isAuth, restrictTo('TEACHER', 'ADMIN'), questionController.getQuestionsByCourse);
 
 router.post('/', isAuth, restrictTo('TEACHER', 'ADMIN'), upload.single('media'), questionController.createQuestion);
 router.put('/:idQuestion', isAuth, restrictTo('TEACHER', 'ADMIN'), upload.single('media'), questionController.updateQuestion);

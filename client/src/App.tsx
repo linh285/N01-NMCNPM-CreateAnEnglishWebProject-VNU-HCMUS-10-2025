@@ -27,7 +27,8 @@ import TeacherCreateLessonPage from './features/teacher/TeacherCreateLessonPage'
 import TeacherCoursesPage from './features/teacher/courses/TeacherCoursesPage';
 import TeacherCreateCoursePage from './features/teacher/courses/TeacherCreateCoursePage';
 import TeacherCourseDetailPage from './features/teacher/courses/TeacherCourseDetailPage';
-import TeacherClassesPage from './features/teacher/classes/TeacherClassesPage';
+import TeacherClassesPage from './features/teacher/classes/TeacherClassesPage'
+import QuestionBankPage from './features/teacher/questions/QuestionBankPage';;
 function App() {
   return (
     <AuthProvider>
@@ -63,6 +64,7 @@ function App() {
                 {/* Teacher  */}
                 <Route path="/teacher" element={<TeacherLayout />}>
                   <Route index element={<TeacherDashboardPage />} />
+                  <Route path="tests" element={<QuestionBankPage />} />
                   <Route path="classes" element={<TeacherClassesPage />} />
                   <Route path="courses" element={<TeacherCoursesPage />} />
                   <Route path="courses/create" element={<TeacherCreateCoursePage />} />

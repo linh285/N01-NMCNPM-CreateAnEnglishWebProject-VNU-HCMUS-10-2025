@@ -1,20 +1,21 @@
 const { Question, Lesson, Course, Teacher } = require('../models');
 const HttpError = require('http-errors');
 
-// 1. [POST] /questions 
+// 1. [POST] /questions (Create in Bank or Lesson)
 exports.createQuestion = async (req, res, next) => {
     try {
         const { id: accountId, role } = req.user;
-        const { lessonId, questionText, optionsJson, correctAnswer } = req.body;
+        // lessonId is now OPTIONAL, courseId is REQUIRED
+        const { courseId, lessonId, questionText, optionsJson, correctAnswer } = req.body;
         
-        // 1. Xử lý File Upload
         const mediaUrl = req.file ? req.file.path : null;
 
-        if (!lessonId || !questionText || !optionsJson || !correctAnswer) {
-            throw HttpError(400, 'Missing required fields');
+        // Basic validation
+        if (!courseId || !questionText || !optionsJson || !correctAnswer) {
+            throw HttpError(400, 'Missing required fields (courseId, questionText, optionsJson, correctAnswer)');
         }
 
-        // 2. // Nếu là string (do multipart gửi lên) thì parse, nếu là object (json thường) thì giữ nguyên
+        // Parse options
         let parsedOptions;
         try {
             parsedOptions = typeof optionsJson === 'string' ? JSON.parse(optionsJson) : optionsJson;
@@ -22,26 +23,28 @@ exports.createQuestion = async (req, res, next) => {
             throw HttpError(400, 'optionsJson must be a valid JSON string');
         }
 
-        // 3. Validate optionsJson
-        if (!Array.isArray(parsedOptions) || parsedOptions.length < 2) {
-            throw HttpError(400, 'optionsJson must be an array with at least 2 options');
-        }
-
-        // 4. Check quyền 
-        const lesson = await Lesson.findByPk(lessonId, {
-            include: [{ model: Course, as: 'course' }]
-        });
-        if (!lesson) throw HttpError(404, 'Lesson not found');
+        // Authorization: Verify Course Ownership
+        const course = await Course.findByPk(courseId);
+        if (!course) throw HttpError(404, 'Course not found');
 
         if (role === 'TEACHER') {
             const teacher = await Teacher.findOne({ where: { idACCOUNT: accountId } });
-            if (!teacher || lesson.course.idTEACHER !== teacher.idTEACHER) {
+            if (!teacher || course.idTEACHER !== teacher.idTEACHER) {
                 throw HttpError(403, 'You can only add questions to your own course');
             }
         }
 
+        // Optional: If lessonId provided, verify it belongs to the course
+        if (lessonId) {
+            const lesson = await Lesson.findByPk(lessonId);
+            if (!lesson || lesson.idCOURSE !== parseInt(courseId)) {
+                throw HttpError(400, 'Lesson does not belong to the specified course');
+            }
+        }
+
         const newQuestion = await Question.create({
-            idLESSON: lessonId,
+            idCOURSE: courseId,
+            idLESSON: lessonId || null, // Can be null
             questionText,
             optionsJson: parsedOptions, 
             correctAnswer,
@@ -58,24 +61,35 @@ exports.createQuestion = async (req, res, next) => {
     }
 };
 
-// 2. [GET] /questions/lesson/:lessonId 
-exports.getQuestionsByLesson = async (req, res, next) => {
+// 2. [GET] /questions/course/:courseId (Fetch Question Bank)
+exports.getQuestionsByCourse = async (req, res, next) => {
     try {
-        const { lessonId } = req.params;
-        const { role } = req.user; 
+        const { courseId } = req.params;
+        const { role, id: accountId } = req.user; 
 
-        // MAC DINH lay het
-        let attributesOption = {}; 
-        if (role === 'LEARNER') {
-            attributesOption = { exclude: ['correctAnswer'] }; // Giấu đáp án đi
+        // Check Course existence
+        const course = await Course.findByPk(courseId);
+        if (!course) throw HttpError(404, 'Course not found');
+
+        // If Teacher, check ownership
+        if (role === 'TEACHER') {
+            const teacher = await Teacher.findOne({ where: { idACCOUNT: accountId } });
+            if (!teacher || course.idTEACHER !== teacher.idTEACHER) {
+                throw HttpError(403, 'Permission denied');
+            }
         }
 
-        const lesson = await Lesson.findByPk(lessonId);
-        if (!lesson) throw HttpError(404, 'Lesson not found');
-
+        // Fetch questions
         const questions = await Question.findAll({
-            where: { idLESSON: lessonId },
-            attributes: attributesOption
+            where: { idCOURSE: courseId },
+            include: [
+                { 
+                    model: Lesson, 
+                    as: 'lesson',
+                    attributes: ['idLESSON', 'title'] // Include lesson info if attached
+                }
+            ],
+            order: [['idQUESTION', 'DESC']]
         });
 
         res.status(200).json({

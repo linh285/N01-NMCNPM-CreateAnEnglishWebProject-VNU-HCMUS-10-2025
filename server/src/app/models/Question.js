@@ -3,7 +3,13 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Question extends Model {
         static associate(models) {
-            // Thuộc về Bài học (N-1)
+            // [NEW] 1. Thuộc về Khóa học (Question Bank của khóa học)
+            Question.belongsTo(models.Course, {
+                foreignKey: 'idCOURSE',
+                as: 'course'
+            });
+
+            // 2. Thuộc về Bài học (Optional - nếu câu hỏi được gán vào bài học cụ thể)
             Question.belongsTo(models.Lesson, {
                 foreignKey: 'idLESSON',
                 as: 'lesson'
@@ -30,10 +36,16 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         correctAnswer: {
-            type: DataTypes.STRING(255), // Lưu đáp án đúng (ví dụ: "A" hoặc "Cat")
+            type: DataTypes.STRING(255),
             allowNull: false
         },
-        // Khóa ngoại
+        // [NEW] Khóa ngoại Course (Bắt buộc để biết câu hỏi thuộc ngân hàng nào)
+        idCOURSE: {
+            type: DataTypes.INTEGER,
+            allowNull: false, // Questions must belong to a course context
+            references: { model: 'COURSES', key: 'idCOURSE' }
+        },
+        // Khóa ngoại Lesson (Có thể Null nếu câu hỏi chỉ nằm trong Bank)
         idLESSON: {
             type: DataTypes.INTEGER,
             allowNull: true,
