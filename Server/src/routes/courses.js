@@ -10,6 +10,7 @@ const upload = require('../app/middlewares/uploadMiddleware');
 // theo csdl thi chi TEACHER moi tao course
 router.post('/', isAuth, restrictTo('TEACHER'), upload.single('thumbnail'), courseController.createCourse);
 router.get('/', courseController.getAllCourses);
+router.get('/teacher/me', isAuth, restrictTo('TEACHER'), courseController.getTeacherCourses);
 router.get('/:id', courseController.getCourseById);
 router.put('/:id', isAuth, restrictTo('TEACHER', 'ADMIN'), upload.single('thumbnail'), courseController.updateCourse);
 router.delete('/:id', isAuth, restrictTo('TEACHER', 'ADMIN'), courseController.deleteCourse);
