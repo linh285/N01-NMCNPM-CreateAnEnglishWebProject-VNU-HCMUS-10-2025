@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { NotificationProvider } from './context/NotificationContext';
+
+// Public & Auth Pages
 import LandingPage from './features/public/LandingPage';
 import IntroPage from './features/public/IntroPage';
 import LoginPage from './features/auth/LoginPage';
@@ -12,11 +15,15 @@ import ProfilePage from './features/profile/ProfilePage';
 import CartPage from './features/cart/CartPage';
 import CheckoutPage from './features/cart/CheckoutPage';
 import TestTakingPage from './features/tests/TestTakingPage';
+
+// Admin Pages
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboardPage from './features/admin/AdminDashboardPage';
 import AdminUsersPage from './features/admin/AdminUsersPage';
 
-import { NotificationProvider } from './context/NotificationContext';
+// --- ADD THESE IMPORTS ---
+import TeacherLayout from './layouts/TeacherLayout';
+import TeacherDashboardPage from './features/teacher/TeacherDashboardPage';
 
 function App() {
   return (
@@ -26,10 +33,13 @@ function App() {
           <CartProvider>
             <BrowserRouter>
               <Routes>
+                {/* Public Routes */}
                 <Route path="/" element={<IntroPage />} />
                 <Route path="/home" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                
+                {/* Feature Routes */}
                 <Route path="/documents/free" element={<DocumentsPage type="free" />} />
                 <Route path="/documents/paid" element={<DocumentsPage type="paid" />} />
                 <Route path="/offline-courses" element={<DocumentsPage type="offline" />} />
@@ -46,6 +56,14 @@ function App() {
                   <Route path="users" element={<AdminUsersPage />} />
                   <Route path="*" element={<div className="p-10">Page under construction</div>} />
                 </Route>
+
+                {/* --- ADD THIS SECTION: Teacher Routes --- */}
+                <Route path="/teacher" element={<TeacherLayout />}>
+                  <Route index element={<TeacherDashboardPage />} />
+                  {/* You can add other teacher routes here later, e.g., /teacher/lessons */}
+                  <Route path="*" element={<div className="p-10">Teacher function coming soon</div>} />
+                </Route>
+
               </Routes>
             </BrowserRouter>
           </CartProvider>
