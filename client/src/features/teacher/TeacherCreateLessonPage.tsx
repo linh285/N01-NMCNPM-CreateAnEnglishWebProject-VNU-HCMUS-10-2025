@@ -89,7 +89,7 @@ const TeacherCreateLessonPage = () => {
             payload.append('learningType', formData.learningType);
             payload.append('durationMinutes', formData.durationMinutes.toString());
             payload.append('orderIndex', formData.orderIndex.toString());
-            payload.append('textContent', formData.textContent);
+            payload.append('content', formData.textContent);
             payload.append('TRANSCRIPT', formData.transcript);
             
             if (selectedFile) {
