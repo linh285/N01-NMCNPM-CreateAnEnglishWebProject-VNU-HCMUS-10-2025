@@ -1,47 +1,42 @@
-// const Sequelize = require('sequelize');
-
-// // 1. Tạo kết nối (Hardcode user/pass ở đây)
-// const sequelize = new Sequelize('EnglishWeb', 'postgres', '016926', {
-//     host: '127.0.0.1',
-//     dialect: 'postgres',
-//     logging: false // Tắt log cho đỡ rối mắt
-// });
-
-// // 2. Hàm test kết nối (để main.js gọi cho vui)
-// const connect = async () => {
-//     try {
-//         await sequelize.authenticate();
-//         console.log('Kết nối PostgreSQL thành công!');
-//     } catch (error) {
-//         console.error('Kết nối thất bại:', error);
-//     }
-// };
-
-// // 3. Xuất cả 2 ra ngoài:
-// // - sequelize: để bên Models dùng
-// // - connect: để bên Main dùng
-// module.exports = { sequelize, connect };
-
 const Sequelize = require('sequelize');
 require('dotenv').config(); 
 
 let sequelize;
 
-// TRƯỜNG HỢP 1: Chạy trên Railway (Production)
-// Railway tự động cung cấp biến DATABASE_URL chứa mọi thông tin cần thiết
-if (process.env.DATABASE_URL) {
+// TRƯỜNG HỢP 1: Dùng biến môi trường chi tiết (khớp với file .env của bạn)
+if (process.env.DB_HOST) {
+    sequelize = new Sequelize(
+        process.env.DB_NAME,     // Tên DB
+        process.env.DB_USERNAME, // User
+        process.env.DB_PASSWORD, // Pass
+        {
+            host: process.env.DB_HOST,
+            port: process.env.DB_PORT,
+            dialect: 'postgres',
+            logging: false,
+            dialectOptions: {
+                ssl: {
+                    require: true,
+                    rejectUnauthorized: false // Quan trọng để kết nối Railway
+                }
+            }
+        }
+    );
+} 
+// TRƯỜNG HỢP 2: Chạy trên Railway Production (nếu họ cung cấp DATABASE_URL gộp)
+else if (process.env.DATABASE_URL) {
     sequelize = new Sequelize(process.env.DATABASE_URL, {
         dialect: 'postgres',
         logging: false,
         dialectOptions: {
             ssl: {
-                require: true,             // Bắt buộc dùng SSL trên Cloud
-                rejectUnauthorized: false  // Bỏ qua lỗi chứng chỉ (quan trọng để không bị lỗi kết nối)
+                require: true,
+                rejectUnauthorized: false
             }
         }
     });
 } 
-// TRƯỜNG HỢP 2: Chạy ở máy nhà (Localhost)
+// TRƯỜNG HỢP 3: Chạy Localhost (Fallback cuối cùng)
 else {
     sequelize = new Sequelize('EnglishWeb', 'postgres', '016926', {
         host: '127.0.0.1',
@@ -56,13 +51,13 @@ const connect = async () => {
         await sequelize.authenticate();
         console.log('Kết nối PostgreSQL thành công!');
         
-        const host = sequelize.config.host || 'Railway URL';
-        console.log(`🔌 Đang kết nối tới: ${host}`);
+        // Log để kiểm tra xem đang kết nối đi đâu
+        const config = sequelize.config;
+        console.log(`🔌 Đang kết nối tới: ${config.host} trên cổng ${config.port || 5432}`);
 
     } catch (error) {
         console.error('Kết nối thất bại:', error);
     }
 };
-
 
 module.exports = { sequelize, connect };
