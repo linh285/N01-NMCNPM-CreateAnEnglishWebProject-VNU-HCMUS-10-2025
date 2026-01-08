@@ -20,11 +20,10 @@ import TestTakingPage from './features/tests/TestTakingPage';
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboardPage from './features/admin/AdminDashboardPage';
 import AdminUsersPage from './features/admin/AdminUsersPage';
-
-// --- ADD THESE IMPORTS ---
+// Teacher
 import TeacherLayout from './layouts/TeacherLayout';
 import TeacherDashboardPage from './features/teacher/TeacherDashboardPage';
-
+import TeacherCreateLessonPage from './features/teacher/TeacherCreateLessonPage'; 
 function App() {
   return (
     <AuthProvider>
@@ -57,11 +56,10 @@ function App() {
                   <Route path="*" element={<div className="p-10">Page under construction</div>} />
                 </Route>
 
-                {/* --- ADD THIS SECTION: Teacher Routes --- */}
+                {/* Teacher  */}
                 <Route path="/teacher" element={<TeacherLayout />}>
                   <Route index element={<TeacherDashboardPage />} />
-                  {/* You can add other teacher routes here later, e.g., /teacher/lessons */}
-                  <Route path="*" element={<div className="p-10">Teacher function coming soon</div>} />
+                  <Route path="lessons/create" element={<TeacherCreateLessonPage />} />
                 </Route>
 
               </Routes>

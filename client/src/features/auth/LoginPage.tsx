@@ -47,7 +47,7 @@ const LoginPage = () => {
             // Redirect based on role
             // The API returns role in UPPERCASE probably, so let's normalize
             const userRole = data.user.role?.toLowerCase();
-            if (userRole === 'teacher') alert('Chuyển đến trang Giáo Viên (Chưa làm)');
+            if (userRole === 'teacher') navigate('/teacher');
             else if (userRole === 'admin') navigate('/admin');
             else navigate('/home'); // Student
 

@@ -9,10 +9,10 @@ import {
     ArrowRight
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
-
+import { useNavigate } from 'react-router-dom';
 const TeacherDashboardPage = () => {
     const { isDarkMode } = useTheme();
-
+    const navigate = useNavigate();
     // Mock Data for Recent Activity 
     const activities = [
         { id: 1, title: '25 học viên đã nộp bài tập "Unit 1: Introduction"', time: '10 phút trước', type: 'submission' },
@@ -40,10 +40,13 @@ const TeacherDashboardPage = () => {
                             <option value="published">Đã đăng</option>
                         </select>
                     </div>
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
-                        <PlusCircle size={18} />
-                        Thêm bài học mới
-                    </button>
+                        <button 
+                            onClick={() => navigate('/teacher/lessons/create')} // <--- ADD THIS LINE
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                        >
+                            <PlusCircle size={18} />
+                            Thêm bài học mới
+                        </button>
                 </div>
             </div>
 
