@@ -43,6 +43,11 @@ export const courseService = {
         return response.data;
     },
 
+    deleteCourse: async (id: number | string) => {
+        const response = await api.delete(`/courses/${id}`);
+        return response.data;
+    },
+    
     // Reviews
     // GET /api/v1/courses/:id/reviews
     getReviews: async (id: number | string) => {
