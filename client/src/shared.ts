@@ -18,9 +18,13 @@ export const APP_INFO = {
 
 export interface User {
     _id?: string;
+    id?: number; 
     email: string;
     name: string;
     role: 'student' | 'teacher' | 'admin' | string;
     avatar?: string;
     hasTakenPlacementTest?: boolean;
+    // Add these fields
+    teacherId?: number;
+    learnerId?: number;
 }

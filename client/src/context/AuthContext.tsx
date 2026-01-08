@@ -4,7 +4,7 @@ import type { User } from '../shared';
 
 interface AuthContextType {
     user: User | null;
-    login: (userData: any) => void; // userData from API response (token + user)
+    login: (userData: any) => void;
     logout: () => void;
     isAuthenticated: boolean;
     isLoading: boolean;
@@ -16,14 +16,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Check for existing token on mount
     useEffect(() => {
         const initAuth = async () => {
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const userData = await authService.getMe();
-                    setUser(userData);
+                    // response is usually { message: "...", profile: { ...Account, teacherProfile: ... } }
+                    const response: any = await authService.getMe();
+                    
+                    // Map backend "profile" structure to frontend "User" interface
+                    if (response.profile) {
+                        const p = response.profile;
+                        // Determine name and specific ID based on role
+                        let name = p.email; // fallback
+                        let teacherId = undefined;
+                        let learnerId = undefined;
+
+                        if (p.role === 'TEACHER' && p.teacherProfile) {
+                            name = p.teacherProfile.fullName;
+                            teacherId = p.teacherProfile.idTEACHER;
+                        } else if (p.role === 'LEARNER' && p.learnerProfile) {
+                            name = p.learnerProfile.fullName;
+                            learnerId = p.learnerProfile.idLEARNER;
+                        } else if (p.role === 'ADMIN' && p.adminProfile) {
+                             name = p.adminProfile.fullName;
+                        }
+
+                        setUser({
+                            id: p.idACCOUNT,
+                            email: p.email,
+                            role: p.role,
+                            name: name,
+                            teacherId: teacherId,
+                            learnerId: learnerId
+                        });
+                    }
                 } catch (error) {
                     console.error("Failed to fetch user", error);
                     localStorage.removeItem('token');
@@ -34,8 +61,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         initAuth();
     }, []);
 
-    const login = (data: { token: string; user: User }) => {
+    const login = (data: { token: string; user: any }) => {
         localStorage.setItem('token', data.token);
+        // Ensure the user object from login response matches User interface
+        // With the backend update, data.user should now have teacherId
         setUser(data.user);
     };
 
@@ -59,4 +88,3 @@ export const useAuth = () => {
     }
     return context;
 };
-

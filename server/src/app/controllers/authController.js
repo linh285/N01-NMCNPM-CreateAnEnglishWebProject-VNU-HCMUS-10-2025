@@ -104,25 +104,39 @@ exports.login = async (req, res, next) => {
             throw HttpError(401, 'Invalid email or password');
         }
 
-        //  SO SÁNH MẬT KHẨU 
-        // user.password trong DB là dạng hash ($2a$10$...)
-        // password người dùng nhập là dạng thô (123456)
-        // Dùng bcrypt.compare để so sánh
         if (user.status !== 'active') { 
             throw HttpError(403, 'Your account has been locked or is pending approval.');
         }
 
-        // 4. Kiểm tra mật khẩu
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             throw HttpError(401, 'Invalid email or password');
         }
 
-        // 5. Tạo token và trả về
+        // --- NEW CODE START ---
+        // Fetch specific profile to get ID (idTEACHER, idLEARNER)
+        let profile = null;
+        if (user.role === 'TEACHER') {
+            profile = await Teacher.findOne({ where: { idACCOUNT: user.idACCOUNT } });
+        } else if (user.role === 'LEARNER') {
+            profile = await Learner.findOne({ where: { idACCOUNT: user.idACCOUNT } });
+        } else if (user.role === 'ADMIN') {
+            profile = await Admin.findOne({ where: { idACCOUNT: user.idACCOUNT } });
+        }
+
         const token = signAuth(user);
+        
+        // Return profile data combined with user info
         res.status(200).json({ 
             message: 'Login successful', 
-            user: { id: user.idACCOUNT, email: user.email, role: user.role }, 
+            user: { 
+                id: user.idACCOUNT, 
+                email: user.email, 
+                role: user.role,
+                teacherId: profile?.idTEACHER, 
+                learnerId: profile?.idLEARNER, 
+                name: profile?.fullName 
+            }, 
             token 
         });
     } catch (error) {
