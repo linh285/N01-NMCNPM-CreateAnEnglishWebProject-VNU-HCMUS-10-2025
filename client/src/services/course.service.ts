@@ -7,6 +7,11 @@ export const courseService = {
         return response.data;
     },
 
+    getTeacherCourses: async () => {
+        const response = await api.get('/courses/teacher/me');
+        return response.data;
+    },
+
     // GET /api/v1/courses/:id
     getCourseById: async (id: number | string) => {
         const response = await api.get(`/courses/${id}`);

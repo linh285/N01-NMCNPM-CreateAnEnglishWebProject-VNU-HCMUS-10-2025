@@ -236,3 +236,45 @@ exports.approveCourse = async (req, res, next) => {
         next(error);
     }
 };
+
+// [NEW] 7. [GET] /courses/teacher/me - Get courses for current logged-in teacher
+exports.getTeacherCourses = async (req, res, next) => {
+    try {
+        const accountId = req.user.id; // From authMiddleware
+
+        // 1. Find the Teacher profile linked to this Account
+        const teacher = await Teacher.findOne({ 
+            where: { idACCOUNT: accountId } 
+        });
+
+        if (!teacher) {
+            // Valid case: User is a teacher account but hasn't set up a profile yet, or has no courses
+            return res.status(200).json({
+                status: 'success',
+                data: { courses: [] }
+            });
+        }
+
+        // 2. Find courses belonging to this teacher
+        const courses = await Course.findAll({
+            where: { idTEACHER: teacher.idTEACHER },
+            order: [['createdAt', 'DESC']],
+            include: [
+                {
+                    model: Teacher,
+                    as: 'teacher',
+                    attributes: ['fullName', 'avatarUrl']
+                }
+            ]
+        });
+
+        res.status(200).json({
+            status: 'success',
+            count: courses.length,
+            data: { courses }
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};

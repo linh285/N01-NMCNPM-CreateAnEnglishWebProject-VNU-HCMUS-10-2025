@@ -32,24 +32,19 @@ const TeacherCoursesPage = () => {
         fetchCourses();
     }, []);
 
-    const fetchCourses = async () => {
+   const fetchCourses = async () => {
         try {
             setLoading(true);
-            const response = await courseService.getAllCourses();
-            // Assuming response.data.courses contains the array
-            const allCourses = response.data?.courses || [];
             
-            // Filter courses belonging to this teacher
-            // Note: Ideally the backend should support filtering, but for now we filter here
-            const myCourses = allCourses.filter((course: Course) => 
-               course.teacher?.account?.email === user?.email || 
-               // Fallback if teacher ID matches (if you have teacherId in user context)
-               course.teacher?.idTEACHER === user?.teacherId 
-            );
-
+            const response = await courseService.getTeacherCourses();
+            
+            // The backend returns { data: { courses: [...] } }
+            const myCourses = response.data?.courses || [];
+            
             setCourses(myCourses);
         } catch (error) {
             console.error("Failed to fetch courses", error);
+            // Optional: Add toast notification here
         } finally {
             setLoading(false);
         }
