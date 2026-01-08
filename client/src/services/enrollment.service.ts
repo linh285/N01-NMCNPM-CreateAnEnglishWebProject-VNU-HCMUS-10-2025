@@ -21,6 +21,11 @@ export const enrollmentService = {
     enroll: async (courseId: number | string) => {
         const response = await api.post('/enrollments', { courseId });
         return response.data;
+    },
+
+    getStudentsByCourse: async (courseId: number | string) => {
+        const response = await api.get(`/enrollments/course/${courseId}`);
+        return response.data;
     }
 };
 

@@ -113,4 +113,48 @@ exports.getAllEnrollments = async (req, res, next) => {
     } catch(error) {
         next(error);
     }
+
+    exports.getStudentsByCourse = async (req, res, next) => {
+    try {
+        const { courseId } = req.params;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        // 1. Check if course exists
+        const course = await Course.findByPk(courseId);
+        if (!course) {
+            return next(HttpError(404, 'Course not found'));
+        }
+
+        // 2. Authorization: If Teacher, ensure they own the course
+        if (userRole === 'TEACHER') {
+            const teacher = await Teacher.findOne({ where: { idACCOUNT: userId } });
+            if (!teacher || course.idTEACHER !== teacher.idTEACHER) {
+                return next(HttpError(403, 'You do not have permission to view students of this course'));
+            }
+        }
+
+        // 3. Fetch Enrollments with Learner info
+        const enrollments = await Enrollment.findAll({
+            where: { idCOURSE: courseId },
+            include: [
+                {
+                    model: Learner,
+                    as: 'learner',
+                    attributes: ['idLEARNER', 'fullName', 'avatarUrl', 'email', 'englishLevel', 'phoneNumber']
+                }
+            ],
+            order: [['enrolledAt', 'DESC']]
+        });
+
+        res.status(200).json({
+            status: 'success',
+            count: enrollments.length,
+            data: enrollments
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
 };
