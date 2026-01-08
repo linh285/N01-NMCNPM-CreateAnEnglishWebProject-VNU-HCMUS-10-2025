@@ -29,7 +29,7 @@ const TeacherLayout = () => {
     // Menu: Trang chủ, Bài học, Tài liệu, Lớp, Bài kiểm tra, Quản lý tài khoản, Chat, Cài đặt
     const menuItems = [
         { path: '/teacher', icon: LayoutDashboard, label: 'Trang chủ' },
-        { path: '/teacher/lessons', icon: BookOpen, label: 'Bài học' },
+        { path: '/teacher/courses', icon: BookOpen, label: 'Khóa học' },
         { path: '/teacher/documents', icon: FolderOpen, label: 'Tài liệu' },
         { path: '/teacher/classes', icon: Users, label: 'Lớp' },
         { path: '/teacher/tests', icon: FileText, label: 'Bài kiểm tra' },

@@ -24,6 +24,9 @@ import AdminUsersPage from './features/admin/AdminUsersPage';
 import TeacherLayout from './layouts/TeacherLayout';
 import TeacherDashboardPage from './features/teacher/TeacherDashboardPage';
 import TeacherCreateLessonPage from './features/teacher/TeacherCreateLessonPage'; 
+import TeacherCoursesPage from './features/teacher/courses/TeacherCoursesPage';
+import TeacherCreateCoursePage from './features/teacher/courses/TeacherCreateCoursePage';
+import TeacherCourseDetailPage from './features/teacher/courses/TeacherCourseDetailPage';
 function App() {
   return (
     <AuthProvider>
@@ -59,6 +62,10 @@ function App() {
                 {/* Teacher  */}
                 <Route path="/teacher" element={<TeacherLayout />}>
                   <Route index element={<TeacherDashboardPage />} />
+                  <Route path="courses" element={<TeacherCoursesPage />} />
+                  <Route path="courses/create" element={<TeacherCreateCoursePage />} />
+                  <Route path="courses/:id" element={<TeacherCourseDetailPage />} />
+
                   <Route path="lessons/create" element={<TeacherCreateLessonPage />} />
                 </Route>
 
