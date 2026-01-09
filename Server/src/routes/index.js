@@ -15,6 +15,7 @@ const offlineScheduleRouter  = require('./offlineSchedule');
 const speakingResultRouter = require('./speakingResults');
 const testSessionRouter = require('./testSessions');
 const adminRouter = require('./admin');
+const documentsRouter = require('./documents');
 
 function route(app) {
   app.use('/api/v1/auth', authRouter);
@@ -31,7 +32,7 @@ function route(app) {
   app.use('/api/v1/speakingResults', speakingResultRouter);
   app.use('/api/v1/testSessions', testSessionRouter);
   app.use('/api/v1/admin', adminRouter);
-
+  router.use('/documents', documentsRouter);
 }
 
 module.exports = route;

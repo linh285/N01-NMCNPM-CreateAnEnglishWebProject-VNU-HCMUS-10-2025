@@ -114,7 +114,10 @@ exports.getAllEnrollments = async (req, res, next) => {
         next(error);
     }
 
-    exports.getStudentsByCourse = async (req, res, next) => {
+};
+
+// 4. [GET] /enrollments/course/:courseId
+exports.getStudentsByCourse = async (req, res, next) => {
     try {
         const { courseId } = req.params;
         const userId = req.user.id;
@@ -156,5 +159,4 @@ exports.getAllEnrollments = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
 };
