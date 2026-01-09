@@ -194,3 +194,29 @@ exports.deleteQuestion = async (req, res, next) => {
         next(error);
     }
 };
+
+
+// Add this to src/app/controllers/questionController.js
+
+// [GET] /questions/lesson/:lessonId
+exports.getQuestionsByLesson = async (req, res, next) => {
+    try {
+        const { lessonId } = req.params;
+        
+        // Optional: Check if lesson exists
+        const lesson = await Lesson.findByPk(lessonId);
+        if (!lesson) throw HttpError(404, 'Lesson not found');
+
+        const questions = await Question.findAll({
+            where: { idLESSON: lessonId },
+            order: [['idQUESTION', 'DESC']]
+        });
+
+        res.status(200).json({
+            count: questions.length,
+            data: questions
+        });
+    } catch (error) {
+        next(error);
+    }
+};
