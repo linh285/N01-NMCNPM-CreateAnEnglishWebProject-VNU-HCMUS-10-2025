@@ -32,19 +32,16 @@ const TeacherCoursesPage = () => {
         fetchCourses();
     }, []);
 
-   const fetchCourses = async () => {
+const fetchCourses = async () => {
         try {
             setLoading(true);
-            
             const response = await courseService.getTeacherCourses();
-            
-            // The backend returns { data: { courses: [...] } }
-            const myCourses = response.data?.courses || [];
+
+            const myCourses = response.data?.data?.courses || []; 
             
             setCourses(myCourses);
         } catch (error) {
             console.error("Failed to fetch courses", error);
-            // Optional: Add toast notification here
         } finally {
             setLoading(false);
         }

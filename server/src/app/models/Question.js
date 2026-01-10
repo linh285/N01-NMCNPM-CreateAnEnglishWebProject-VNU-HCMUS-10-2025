@@ -42,8 +42,11 @@ module.exports = (sequelize, DataTypes) => {
         // [NEW] Khóa ngoại Course (Bắt buộc để biết câu hỏi thuộc ngân hàng nào)
         idCOURSE: {
             type: DataTypes.INTEGER,
-            allowNull: false, // Questions must belong to a course context
-            references: { model: 'COURSES', key: 'idCOURSE' }
+            allowNull: true, 
+            references: {
+                model: 'COURSES',
+                key: 'idCOURSE'
+            }
         },
         // Khóa ngoại Lesson (Có thể Null nếu câu hỏi chỉ nằm trong Bank)
         idLESSON: {

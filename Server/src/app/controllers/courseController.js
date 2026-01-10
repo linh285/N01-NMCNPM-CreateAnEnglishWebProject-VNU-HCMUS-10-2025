@@ -10,51 +10,32 @@ const generateCourseCode = () => {
 // 1. [POST] /courses 
 exports.createCourse = async (req, res, next) => {
     try {
-        // 1. Lấy thông tin từ Token và body
         const accountId = req.user.id; 
         const { title, description, price, level, type, category, syllabus } = req.body;
-
         const thumbnailUrl = req.file ? req.file.path : null;
 
-        if (!title) {
-            throw HttpError(400, 'Missing required fields: title');
-        }
+        if (!title) throw HttpError(400, 'Missing required fields: title');
 
-        // 2. Kiem tra giao vien co ton tai hay khong
-        const teacher = await Teacher.findOne(
-            {where: {idACCOUNT: accountId}}
-        );
-        if (!teacher) {
-            throw HttpError(404, 'Teacher not found');
-        }
+        const teacher = await Teacher.findOne({ where: { idACCOUNT: accountId } });
+        if (!teacher) throw HttpError(404, 'Teacher not found');
 
         const newCourseCode = generateCourseCode();
 
-        // 3. Tao khoa hoc moi
         const newCourse = await Course.create({
-            title,
-            description,
-            price: price || 0,
-            level,
+            title, description, price: price || 0, level,
             type: type || 'Online',
-            courseCode: newCourseCode, // tu dong dien
-            category,
-            syllabus,
-            idTEACHER: teacher.idTEACHER ,
+            courseCode: newCourseCode,
+            category, syllabus,
             thumbnailUrl: thumbnailUrl,
+            status: 'DRAFT', 
+            idTEACHER: teacher.idTEACHER 
         });
 
-        res.status(201).json(
-            {
-                message: 'Course created successfully',
-                data: {
-                    course: newCourse
-                }
-            }
-        );
-    } catch (error) {
-        next(error);
-    }
+        res.status(201).json({
+            message: 'Course created successfully',
+            data: { course: newCourse }
+        });
+    } catch (error) { next(error); }
 };
 
 // 2. [GET] /courses 
@@ -237,44 +218,31 @@ exports.approveCourse = async (req, res, next) => {
     }
 };
 
-// [NEW] 7. [GET] /courses/teacher/me - Get courses for current logged-in teacher
+// 7. [GET] /courses/teacher/me - Get courses for current logged-in teacher
 exports.getTeacherCourses = async (req, res, next) => {
     try {
-        const accountId = req.user.id; // From authMiddleware
+        const accountId = req.user.id;
 
-        // 1. Find the Teacher profile linked to this Account
-        const teacher = await Teacher.findOne({ 
-            where: { idACCOUNT: accountId } 
-        });
+        const teacher = await Teacher.findOne({ where: { idACCOUNT: accountId } });
 
         if (!teacher) {
-            // Valid case: User is a teacher account but hasn't set up a profile yet, or has no courses
-            return res.status(200).json({
-                status: 'success',
-                data: { courses: [] }
-            });
+            return res.status(200).json({ status: 'success', data: { courses: [] } });
         }
 
-        // 2. Find courses belonging to this teacher
         const courses = await Course.findAll({
-            where: { idTEACHER: teacher.idTEACHER },
+            where: { idTEACHER: teacher.idTEACHER }, 
             order: [['createdAt', 'DESC']],
-            include: [
-                {
-                    model: Teacher,
-                    as: 'teacher',
-                    attributes: ['fullName', 'avatarUrl']
-                }
-            ]
+            include: [{
+                model: Teacher,
+                as: 'teacher',
+                attributes: ['fullName', 'avatarUrl']
+            }]
         });
 
         res.status(200).json({
             status: 'success',
             count: courses.length,
-            data: { courses }
+            data: { courses } // Structure is data.courses
         });
-
-    } catch (error) {
-        next(error);
-    }
+    } catch (error) { next(error); }
 };
