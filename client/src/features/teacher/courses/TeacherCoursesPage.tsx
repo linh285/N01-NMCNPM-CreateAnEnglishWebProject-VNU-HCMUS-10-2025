@@ -37,7 +37,7 @@ const fetchCourses = async () => {
             setLoading(true);
             const response = await courseService.getTeacherCourses();
 
-            const myCourses = response.data?.data?.courses || []; 
+            const myCourses = response.data?.courses || []; 
             
             setCourses(myCourses);
         } catch (error) {
