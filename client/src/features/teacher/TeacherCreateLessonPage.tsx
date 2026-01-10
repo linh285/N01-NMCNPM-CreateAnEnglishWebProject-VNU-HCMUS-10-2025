@@ -1,322 +1,213 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-    Save, 
-    X, 
-    UploadCloud, 
-    Video, 
-    BookOpen,
-    Clock
-} from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Save, Video, FileText, Upload, Loader2, AlignLeft } from 'lucide-react';
+import { courseService } from '../../services/course.service';
 import { lessonService } from '../../services/lesson.service';
-import { courseService } from '../../services/course.service'; 
 
 const TeacherCreateLessonPage = () => {
-    const { isDarkMode } = useTheme();
     const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(false);
+    const [searchParams] = useSearchParams();
     
-    // Initialize as an empty array to prevent crashes before data loads
+    const initialCourseId = searchParams.get('courseId') || '';
+    const [selectedCourseId, setSelectedCourseId] = useState(initialCourseId);
     const [courses, setCourses] = useState<any[]>([]);
 
-    // Form State
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
-        courseId: '',
         title: '',
-        contentType: 'Video', 
-        learningType: 'Listening', 
-        durationMinutes: 10,
-        orderIndex: 1,
-        textContent: '',
-        transcript: '',
-        mediaUrl: '' 
+        content: '', // This will store the Reading text
+        type: 'Video', 
+        duration: 0,
+        isPreview: false
     });
+    
+    const [videoFile, setVideoFile] = useState<File | null>(null);
 
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-    // 1. Fetch Courses on Mount
+    // Fetch courses
     useEffect(() => {
-        const fetchCourses = async () => {
+        const fetchMyCourses = async () => {
             try {
-                const response = await courseService.getAllCourses(); 
-                
-                // Check the structure of your API response and set the array correctly
-                if (response && response.data && Array.isArray(response.data.courses)) {
-                    setCourses(response.data.courses);
-                } else if (response && Array.isArray(response.data)) {
-                     // Fallback in case structure is different
-                    setCourses(response.data);
-                } else {
-                    console.error("Unexpected course data structure:", response);
-                    setCourses([]); 
+                const response = await courseService.getTeacherCourses();
+                const myCourses = response.data?.courses || [];
+                setCourses(myCourses);
+                if (!initialCourseId && myCourses.length > 0) {
+                    setSelectedCourseId(myCourses[0].idCOURSE);
                 }
-                // -------------------
-
             } catch (error) {
                 console.error("Failed to load courses", error);
-                setCourses([]);
             }
         };
-        fetchCourses();
-    }, []);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setSelectedFile(e.target.files[0]);
-        }
-    };
+        fetchMyCourses();
+    }, [initialCourseId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        if (!formData.courseId) {
-            alert("Vui lòng chọn khóa học!");
-            return;
-        }
+        if (!selectedCourseId) return alert('Vui lòng chọn khóa học!');
 
         setIsLoading(true);
-
         try {
             const payload = new FormData();
             payload.append('title', formData.title);
-            payload.append('contentType', formData.contentType);
-            payload.append('learningType', formData.learningType);
-            payload.append('durationMinutes', formData.durationMinutes.toString());
-            payload.append('orderIndex', formData.orderIndex.toString());
-            payload.append('content', formData.textContent);
-            payload.append('TRANSCRIPT', formData.transcript);
-            
-            if (selectedFile) {
-                payload.append('video', selectedFile); 
-            } else if (formData.mediaUrl) {
-                payload.append('videoUrl', formData.mediaUrl);
+            payload.append('contentType', formData.type);
+            payload.append('durationMinutes', formData.duration.toString());
+            payload.append('isPreview', formData.isPreview.toString());
+            payload.append('learningType', formData.type === 'Video' ? 'Listening' : 'Reading');
+
+            if (formData.type === 'Reading') {
+                payload.append('content', formData.content);
             }
 
-            // Note: lessonService.createLesson takes (courseId, formData)
-            await lessonService.createLesson(formData.courseId, payload);
+            if (formData.type === 'Video' && videoFile) {
+                payload.append('video', videoFile);
+            }
+
+            await lessonService.createLesson(selectedCourseId, payload);
             
-            alert("Tạo bài học thành công!");
-            navigate('/teacher'); 
+            alert('Tạo bài học thành công!');
+            navigate(`/teacher/courses/${selectedCourseId}`);
         } catch (error) {
-            console.error("Error creating lesson:", error);
-            alert("Có lỗi xảy ra khi tạo bài học.");
+            console.error('Create lesson failed:', error);
+            alert('Tạo bài học thất bại.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const inputClass = `w-full p-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
-        isDarkMode ? 'bg-[#0f172a] border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'
-    }`;
-
-    const labelClass = `block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`;
-
     return (
-        <div className="max-w-4xl mx-auto pb-20">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold">Thêm bài học mới</h1>
-                    <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Tạo nội dung học tập mới cho học viên của bạn.
-                    </p>
-                </div>
-                <button onClick={() => navigate('/teacher')} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5">
-                    <X size={24} />
+        <div className="max-w-4xl mx-auto space-y-6">
+            <div className="flex items-center gap-4">
+                <button 
+                    onClick={() => navigate(selectedCourseId ? `/teacher/courses/${selectedCourseId}` : '/teacher/courses')}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full"
+                >
+                    <ArrowLeft size={24} />
                 </button>
+                <h1 className="text-2xl font-bold">Thêm bài học mới</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                
-                {/* Section 1: Basic Info */}
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
-                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                        <BookOpen size={20} className="text-blue-500" />
-                        Thông tin cơ bản
-                    </h2>
+                <div className="bg-white dark:bg-[#1e293b] p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-4">
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Course Selection */}
-                        <div className="md:col-span-2">
-                            <label className={labelClass}>Chọn khóa học <span className="text-red-500">*</span></label>
-                            <select 
-                                name="courseId" 
-                                value={formData.courseId} 
-                                onChange={handleChange} 
-                                className={inputClass}
-                                required
-                            >
-                                <option value="">-- Chọn khóa học --</option>
-                                {/* We map carefully here to avoid crashes if keys are different */}
-                                {courses.map(course => (
-                                    <option key={course.id || course.idCOURSE || course.courseCode} value={course.id || course.idCOURSE}>
-                                        {course.title}
-                                    </option>
-                                ))}
-                            </select>
-                            {courses.length === 0 && (
-                                <p className="text-xs text-red-500 mt-1">
-                                    Không tìm thấy khóa học nào. Hãy đảm bảo bạn đã tạo khóa học trước.
-                                </p>
-                            )}
-                        </div>
+                    {/* Course Select */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Chọn khóa học <span className="text-red-500">*</span></label>
+                        <select 
+                            value={selectedCourseId}
+                            onChange={(e) => setSelectedCourseId(e.target.value)}
+                            className="w-full p-2 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+                            required
+                        >
+                            <option value="" disabled>-- Chọn khóa học --</option>
+                            {courses.map((course) => (
+                                <option key={course.idCOURSE} value={course.idCOURSE}>
+                                    {course.title}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                        {/* Title */}
-                        <div className="md:col-span-2">
-                            <label className={labelClass}>Tiêu đề bài học <span className="text-red-500">*</span></label>
-                            <input 
-                                type="text" 
-                                name="title" 
-                                value={formData.title} 
-                                onChange={handleChange}
-                                placeholder="Ví dụ: Unit 1 - Introduction to IELTS" 
-                                className={inputClass} 
-                                required 
-                            />
-                        </div>
+                    {/* Title */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Tiêu đề bài học <span className="text-red-500">*</span></label>
+                        <input 
+                            required
+                            type="text"
+                            className="w-full p-2 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+                            value={formData.title}
+                            onChange={e => setFormData({...formData, title: e.target.value})}
+                            placeholder="Ví dụ: Bài đọc về thì hiện tại đơn"
+                        />
+                    </div>
 
-                        {/* Content Type */}
-                        <div>
-                            <label className={labelClass}>Loại nội dung</label>
-                            <select name="contentType" value={formData.contentType} onChange={handleChange} className={inputClass}>
-                                <option value="Video">Video</option>
-                                <option value="Reading">Reading (Đọc)</option>
-                                <option value="Audio">Audio (Nghe)</option>
-                                <option value="Quiz">Quiz (Bài tập)</option>
-                            </select>
+                    {/* Lesson Type Selection */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div 
+                            onClick={() => setFormData({...formData, type: 'Video'})}
+                            className={`cursor-pointer p-4 border rounded-lg flex flex-col items-center gap-2 transition-colors ${formData.type === 'Video' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-gray-200 dark:border-gray-700'}`}
+                        >
+                            <Video size={24} />
+                            <span className="font-medium">Video Bài Giảng</span>
                         </div>
-
-                        {/* Learning Type */}
-                        <div>
-                            <label className={labelClass}>Kỹ năng chính</label>
-                            <select name="learningType" value={formData.learningType} onChange={handleChange} className={inputClass}>
-                                <option value="Listening">Listening</option>
-                                <option value="Reading">Reading</option>
-                                <option value="Speaking">Speaking</option>
-                                <option value="Vocabulary">Vocabulary</option>
-                                <option value="Grammar">Grammar</option>
-                            </select>
-                        </div>
-
-                        {/* Duration */}
-                        <div>
-                            <label className={labelClass}>Thời lượng (phút)</label>
-                            <div className="relative">
-                                <Clock size={18} className="absolute left-3 top-3.5 text-gray-400" />
-                                <input 
-                                    type="number" 
-                                    name="durationMinutes" 
-                                    value={formData.durationMinutes} 
-                                    onChange={handleChange}
-                                    className={`${inputClass} pl-10`} 
-                                />
-                            </div>
-                        </div>
-
-                        {/* Order Index */}
-                        <div>
-                            <label className={labelClass}>Thứ tự bài học</label>
-                            <input 
-                                type="number" 
-                                name="orderIndex" 
-                                value={formData.orderIndex} 
-                                onChange={handleChange}
-                                className={inputClass} 
-                            />
+                        <div 
+                            onClick={() => setFormData({...formData, type: 'Reading'})}
+                            className={`cursor-pointer p-4 border rounded-lg flex flex-col items-center gap-2 transition-colors ${formData.type === 'Reading' ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-600' : 'border-gray-200 dark:border-gray-700'}`}
+                        >
+                            <FileText size={24} />
+                            <span className="font-medium">Bài Đọc / Tài liệu</span>
                         </div>
                     </div>
-                </div>
 
-                {/* Section 2: Media Upload */}
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
-                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                        <Video size={20} className="text-purple-500" />
-                        Nội dung bài học
-                    </h2>
-
-                    <div className="space-y-6">
-                        {formData.contentType === 'Video' || formData.contentType === 'Audio' ? (
-                            <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                                isDarkMode ? 'border-gray-700 hover:border-blue-500 hover:bg-white/5' : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'
-                            }`}>
+                    {/* --- DYNAMIC CONTENT SECTION --- */}
+                    
+                    {/* Option A: Video Upload */}
+                    {formData.type === 'Video' && (
+                        <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                            <label className="block text-sm font-medium mb-1">Upload Video</label>
+                            <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
                                 <input 
                                     type="file" 
-                                    id="file-upload" 
+                                    accept="video/*" 
                                     className="hidden" 
-                                    accept="video/*,audio/*"
-                                    onChange={handleFileChange}
+                                    id="video-upload"
+                                    onChange={(e) => setVideoFile(e.target.files ? e.target.files[0] : null)}
                                 />
-                                <label htmlFor="file-upload" className="cursor-pointer block">
-                                    <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <UploadCloud size={32} />
-                                    </div>
-                                    <span className="text-blue-500 font-medium">Tải lên Video/Audio</span>
-                                    <p className="text-sm text-gray-500 mt-2">MP4, MP3 up to 100MB</p>
-                                    {selectedFile && (
-                                        <div className="mt-4 p-2 bg-green-500/10 text-green-500 rounded text-sm inline-block">
-                                            Đã chọn: {selectedFile.name}
-                                        </div>
-                                    )}
+                                <label htmlFor="video-upload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-500">
+                                    <Upload size={32} />
+                                    <span className="text-sm">
+                                        {videoFile ? videoFile.name : 'Click để chọn file video (MP4, MKV...)'}
+                                    </span>
                                 </label>
                             </div>
-                        ) : null}
-
-                        {/* Text Content / Description */}
-                        <div>
-                            <label className={labelClass}>Nội dung văn bản / Ghi chú</label>
-                            <textarea 
-                                name="textContent" 
-                                rows={4} 
-                                value={formData.textContent} 
-                                onChange={handleChange}
-                                placeholder="Nhập nội dung bài đọc hoặc ghi chú cho bài học..."
-                                className={inputClass}
-                            ></textarea>
                         </div>
+                    )}
 
-                         {/* Transcript */}
-                         <div>
-                            <label className={labelClass}>Transcript (Lời thoại)</label>
-                            <textarea 
-                                name="transcript" 
-                                rows={4} 
-                                value={formData.transcript} 
-                                onChange={handleChange}
-                                placeholder="Nhập lời thoại (nếu có) để hỗ trợ học viên..."
-                                className={inputClass}
+                    {/* Option B: Text Content (NEW) */}
+                    {formData.type === 'Reading' && (
+                        <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                            <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+                                <AlignLeft size={16} /> Nội dung bài đọc
+                            </label>
+                            <textarea
+                                rows={10}
+                                className="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-green-500 outline-none"
+                                placeholder="Nhập nội dung bài học, ngữ pháp, hoặc từ vựng vào đây..."
+                                value={formData.content}
+                                onChange={e => setFormData({...formData, content: e.target.value})}
                             ></textarea>
+                            <p className="text-xs text-gray-500 mt-1">Hỗ trợ nhập văn bản thuần (Plain text).</p>
+                        </div>
+                    )}
+
+                    {/* Settings */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Thời lượng (phút)</label>
+                            <input 
+                                type="number"
+                                min="0"
+                                className="w-full p-2 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+                                value={formData.duration}
+                                onChange={e => setFormData({...formData, duration: Number(e.target.value)})}
+                            />
+                        </div>
+                        <div className="flex items-center pt-6">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                    type="checkbox"
+                                    className="w-4 h-4 rounded text-blue-600"
+                                    checked={formData.isPreview}
+                                    onChange={e => setFormData({...formData, isPreview: e.target.checked})}
+                                />
+                                <span className="text-sm font-medium">Cho phép học thử (Preview)</span>
+                            </label>
                         </div>
                     </div>
                 </div>
 
-                {/* Submit Actions */}
-                <div className="flex items-center justify-end gap-4 pt-4">
-                    <button 
-                        type="button"
-                        onClick={() => navigate('/teacher')}
-                        className={`px-6 py-2.5 rounded-xl font-medium transition-colors ${
-                            isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-600'
-                        }`}
-                    >
-                        Hủy bỏ
-                    </button>
-                    <button 
-                        type="submit"
-                        disabled={isLoading}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2 disabled:opacity-50"
-                    >
-                        {isLoading ? 'Đang lưu...' : (
-                            <>
-                                <Save size={20} />
-                                Lưu bài học
-                            </>
-                        )}
+                <div className="flex justify-end gap-3">
+                    <button type="submit" disabled={isLoading} className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2">
+                        {isLoading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                        Tạo bài học
                     </button>
                 </div>
             </form>
