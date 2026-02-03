@@ -33,6 +33,7 @@ import TeacherDocumentsPage from './features/teacher/documents/TeacherDocumentsP
 import TeacherAccountPage from './features/teacher/account/TeacherAccountPage';
 import TeacherChatPage from './features/teacher/chat/TeacherChatPage';
 import TeacherSettingsPage from './features/teacher/settings/TeacherSettingsPage';
+import TeacherEditLessonPage from './features/teacher/lessons/TeacherEditLessonPage';
 function App() {
   return (
     <AuthProvider>
@@ -78,6 +79,7 @@ function App() {
                   <Route path="account" element={<TeacherAccountPage />} />
                   <Route path="chat" element={<TeacherChatPage />} />
                   <Route path="settings" element={<TeacherSettingsPage />} />
+                  <Route path="/teacher/lessons/edit/:lessonId" element={<TeacherEditLessonPage />} />
                 </Route>
 
               </Routes>
